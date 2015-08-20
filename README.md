@@ -1,5 +1,5 @@
 # HomeMatic-EasyInstall
-**Version 1.49**  
+**Version 1.47**  
 
 ## Inhaltsverzeichniss
 
@@ -46,9 +46,8 @@ Unterstützt bei der Ersteinrichtung oder Erweiterung von Homematic-Geräten in 
 * Das Script ausführen.  
 
 **Hinweise:**    
- Ist ein Homematic-Socket mit der unter 'Konfiguration' angegeben IP-Adresse oder Namen nich vorhanden, so wird er automatisch angelegt.  
- Sollte das Script mit einem Fehler beendet werden; einfach noch mal  
- ausführen. Bereits angelegte Geräte werden übersprungen!  
+ Ist ein Homematic-Socket mit der unter 'Konfiguration' angegeben IP-Adresse oder Namen nicht vorhanden, so wird er automatisch angelegt.  
+ Sollte das Script mit einem Fehler beendet werden; einfach noch mal ausführen. Bereits angelegte Geräte werden übersprungen!  
 
 ## 4. Mapping:
  Aktuell enthält das Mapping alle bekannten Geräte- und Kanal-Typen.  
@@ -109,3 +108,32 @@ Unterstützt bei der Ersteinrichtung oder Erweiterung von Homematic-Geräten in 
    BugFix:  
 
    * Wired-Geräte wurden bei der CCU2 nicht immer erkannt und angelegt.  
+
+   **Version 1.47:**
+
+   Neu:  
+
+   * Folgende Geräte-Typen ergänzt:  
+
+    - RAINDETECTOR  
+    - RAINDETECTOR_HEAT  
+    - PULSE_SENSOR  
+    - TILT_SENSOR  
+    - DIGITAL_OUTPUT  
+    - CAPACITIVE_FILLING_LEVEL_SENSOR  
+    - DIGITAL_ANALOG_OUTPUT (Profil für FREQUENCY fehlt noch)  
+    - DIGITAL_INPUT (Profil für FREQUENCY fehlt noch)  
+    - DIGITAL_ANALOG_INPUT (Profil für VALUE fehlt noch)  
+    - INPUT_OUTPUT  
+    - POWERMETER_IGL (Alle Profile fehlen noch)  
+    - STATUS_INDICATOR (Alle Profile fehlen noch)  
+    - KEYMATIC (Alle Profile fehlen noch)  
+    - SENSOR_FOR_CARBON_DIOXIDE (Alle Profile fehlen noch)  
+    - ALARMACTUATOR (Alle Profile fehlen noch)  
+    - WINMATIC (Alle Profile fehlen noch)  
+    - AKKU (Alle Profile fehlen noch)  
+    - WATERDETECTIONSENSOR (Profil für STATE fehlt noch)  
+
+   * Folgende Kanal-Typen für bestehende Geräte-Typen ergänzt:  
+
+    - AIR_PRESSURE  (Profil fehlt noch)

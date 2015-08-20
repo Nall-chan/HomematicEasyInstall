@@ -2,8 +2,8 @@
 
 # HomeMatic EasyInstall
 ################################################################################
-# Version : 1.49 beta
-# Datum : 29.07.2015
+# Version : 1.47 
+# Datum : 20.08.2015
 # Author: Michael Tröger (mt@neo-ami.de)
 #
 # Beschreibung:
@@ -33,6 +33,11 @@
 #     2000 neue Variablen entstanden.
 #
 # ChangeLog:
+# 20.08.2015
+#  Neu:     Diverse Geräte-Typen und Kanäle im Mapping ergänzt. Teilweise
+#           nur vorbereitet. Es fehlen bei den neuen Geräten noch viele Profile.
+#           Im Mapping an dem Kommentar  // TODO zu erkennen.
+#  
 # 29.07.2015
 # Bugfix:   Auf der CCU2 sind alle internen Interface-IDs der BidCos-Dienste
 #           nicht fest vergeben. Außer dem immer vorhandenen BidCos-RF.
@@ -107,12 +112,13 @@ $Emulate = array('SET_TEMPERATURE', 'SETPOINT', 'LED_STATUS');
 #            Leider auch für Geräte welche gar nicht schaltbar sind, wie Rauchmelder
 #            oder TKF. Mit false / true kann dieses Verhalten korrigiert werden.
 #
-# 'Name Raum' = Name der Variable unterhalb vom Gerät. Es stehen folgende
-#               Platzhalter zur Verfügung:
-#		               %1$s = Name vom Gerät %2$s = Name vom Raum
+# 'Name Raum' = Name der Variable unterhalb vom Gerät. 
+#               Es stehen folgende Platzhalter zur Verfügung:
+#		  %1$s = Name vom Gerät %2$s = Name vom Raum
+#		  
 # 'Name Gewerk' = Name des erzeugen Links innerhalb des Gewerkes, welcher auf die Variable zeigt.
-#						Es stehen folgende Platzhalter zur Verfügung:
-#							%1$s = Name vom Gerät %2$s = Name vom Raum %3$s = Name vom Gewerk
+#		  Es stehen folgende Platzhalter zur Verfügung:
+#		    %1$s = Name vom Gerät %2$s = Name vom Raum %3$s = Name vom Gewerk
 
 $TypMappingProfil = array(
     'VIRTUAL_KEY' => array(),
@@ -146,7 +152,7 @@ $TypMappingProfil = array(
             'Name Raum' => 'Heizung Regensensor',
             'Name Gewerk' => 'Heizung Regensensor %2$s',
             'Profil' => '', // ~Switch
-            'Action' => false
+            'Action' => true
         )
     ),
     'WEATHER' => array(
@@ -213,7 +219,7 @@ $TypMappingProfil = array(
         'AIR_PRESSURE' => array(
             'Name Raum' => 'Luftdruck',
             'Name Gewerk' => 'Luftdruck %2$s',
-            'Profil' => '', // offen int hPa
+            'Profil' => '', // TODO  int hPa
             'Action' => false
         )
     ),
@@ -387,36 +393,36 @@ $TypMappingProfil = array(
         )
     ),
     'DIGITAL_ANALOG_OUTPUT' => array(
-        'FREQUENCY' => array() // offen float mHz
+        'FREQUENCY' => array()                  // TODO float mHz
     ),
     'DIGITAL_INPUT' => array(
-        'FREQUENCY' => array() // offen float mHz
+        'FREQUENCY' => array()                  // TODO float mHz
     ),
     'DIGITAL_ANALOG_INPUT' => array(
-        'VALUE' => array() // offen float
+        'VALUE' => array()                      // TODO float
     ),
     'INPUT_OUTPUT' => array(), // nur anlegen
-    'POWERMETER_IGL' => array(// offen
-        'GAS_ENERGY_COUNTER' => array(), //m³ float
-        'GAS_POWER' => array(), //m³ float
-        'ENERGY_COUNTER' => array(), // Wh float
-        'POWER' => array()   // W float
+    'POWERMETER_IGL' => array(                  // TODO
+        'GAS_ENERGY_COUNTER' => array(),        // TODO m³ float
+        'GAS_POWER' => array(),                 // TODO m³ float
+        'ENERGY_COUNTER' => array(),            // TODO  Wh float
+        'POWER' => array()                      // TODO W float
     ),
-    'STATUS_INDICATOR' => array(//offen
+    'STATUS_INDICATOR' => array(                // TODO
         'STATE' => array()
     ),
-    'KEYMATIC' => array(// offen
-        'STATE' => array(), // OPEN = action RELOCK_DELAY =float write only
+    'KEYMATIC' => array(                        // TODO
+        'STATE' => array(),                     // OPEN = action RELOCK_DELAY =float write only
         'STATE_UNCERTAIN' => array(),
     ),
     'SENSOR_FOR_CARBON_DIOXIDE' => array(
-        'STATE' => array() // offen
-# 0 = LEVEL_NORMAL
-# 1 = LEVEL_ADDED
-# 2 = LEVEL_ADDED_STRONG
+        'STATE' => array()                      // TODO
+                                                # 0 = LEVEL_NORMAL
+                                                # 1 = LEVEL_ADDED
+                                                # 2 = LEVEL_ADDED_STRONG
     ),
     'ALARMACTUATOR' => array(
-        'STATE' => array() //offen
+        'STATE' => array()                      // TODO
     ),
     'PULSE_SENSOR' => array(),
     'TILT_SENSOR' => array(
@@ -428,29 +434,29 @@ $TypMappingProfil = array(
         )
     ),
     'WINMATIC' => array(
-        'LEVEL' => array(// float
+        'LEVEL' => array(                       // TODO
         ),
-        'STATE_UNCERTAIN' => array(//bool
+        'STATE_UNCERTAIN' => array(             // TODO bool
         )
     ),
     'AKKU' => array(
-        'LEVEL' => array(// float
+        'LEVEL' => array(                       // TODO float
         ),
-        'STATUS' => array(//int
-# 0 = TRICKLE_CHARGE
-# 1 = CHARGE
-# 2 = DISCHARGE
-# 3 = STATE_UNKNOWN
+        'STATUS' => array(                      // TODO int
+                                                # 0 = TRICKLE_CHARGE
+                                                # 1 = CHARGE
+                                                # 2 = DISCHARGE
+                                                # 3 = STATE_UNKNOWN
         )
     ),
     'WATERDETECTIONSENSOR' => array(
         'STATE' => array(
             'Name Raum' => 'Wasserstand',
             'Name Gewerk' => '%1$s',
-            'Profil' => '', // offen
-# 0 = DRY
-# 1 = WET
-# 2 = WATER
+            'Profil' => '',                     // TODO
+                                                # 0 = DRY
+                                                # 1 = WET
+                                                # 2 = WATER
             'Action' => false
         )
     ),
@@ -505,7 +511,7 @@ $TypMappingProfil = array(
         'BOOST_STATE' => array(
             'Name Raum' => 'Boost Status',
             'Name Gewerk' => 'Boost Status %2$s',
-            'Profil' => '', // FEHLT NOCH
+            'Profil' => '',                                 // TODO
             'Action' => false
         ),
         'ACTUAL_TEMPERATURE' => array(
@@ -550,7 +556,7 @@ $TypMappingProfil = array(
         'BOOST_STATE' => array(
             'Name Raum' => 'Boost Status',
             'Name Gewerk' => 'Boost Status %2$s',
-            'Profil' => '', // FEHLT NOCH
+            'Profil' => '',                                         // TODO
             'Action' => false
         ),
         'ACTUAL_TEMPERATURE' => array(
