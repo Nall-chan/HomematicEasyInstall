@@ -79,12 +79,12 @@ Unterstützt bei der Ersteinrichtung oder Erweiterung von Homematic-Geräten in 
        - Neue Wand & Heizkörperthermostaten  
        - BLIND-Geräte (Jalousie-Aktoren)  
 
-    BugFix:  
+   BugFix:  
 
    * Die neuen Wand & Heizkörperthermostaten senden einige Statusvariablen erst nach einiger Zeit oder wenn der Modus umgeschaltet wurde.  
    * Ein neues Feld 'forceDP' im Mapping-Array erzwingt jetzt das Anlegen von Statusvariablen und fragt anschließend den Wert aus der CCU ab.  
 
-    **Version 1.4:**  
+   **Version 1.4:**  
 
    Neu:  
 
@@ -93,22 +93,19 @@ Unterstützt bei der Ersteinrichtung oder Erweiterung von Homematic-Geräten in 
     - DIMMER  
     - VIRTUAL_DIMMER  
 
-    BugFix:  
+   BugFix:  
 
-    * Alle veralteten IPS_* PHP-Funktionen entfernt.  
-    * Kleiner Anpassungen, damit das Script auf IPS 4.x besser läuft.  
+   * Alle veralteten IPS_* PHP-Funktionen entfernt.  
+   * Kleiner Anpassungen, damit das Script auf IPS 4.x besser läuft.  
 
-    **Version 1.45:**  
+   **Version 1.45:**  
 
-    BugFix:  
+   BugFix:  
 
-    * Enthält ein Kanal oder Gerät ein < oder > Zeichen im Namen, schlug das Laden der Daten von der CCU fehl.  
+   * Enthält ein Kanal oder Gerät ein < oder > Zeichen im Namen, schlug das Laden der Daten von der CCU fehl.  
 
-    **Update Version 1.46:**  
+   **Version 1.46:**  
 
-    BugFix:  
+   BugFix:  
 
-    * Wired-Geräte wurden bei der CCU2 nicht immer erkannt und angelegt.  
-
-[ATTACH=CONFIG]30037[/ATTACH]
-[ATTACH=CONFIG]30054[/ATTACH]
+   * Wired-Geräte wurden bei der CCU2 nicht immer erkannt und angelegt.  
