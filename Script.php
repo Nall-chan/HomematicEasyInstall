@@ -2,8 +2,8 @@
 
 # HomeMatic EasyInstall
 ################################################################################
-# Version : 1.47 
-# Datum : 20.08.2015
+# Version : 1.48 
+# Datum : 20.04.2017
 # Author: Michael Tröger (mt@neo-ami.de)
 #
 # Beschreibung:
@@ -11,7 +11,7 @@
 # Dieses Script richtet automatisch alle HM-Geräte in IPS ein.
 #
 # Vorraussetzungen:
-# - min. IPS Pro (es werden jede Menge Variablen angelegt)
+# - min. IPS Pro (es werden jede Menge Variablen angelegt) bis Version 4.0 !
 # - CCU1 oder CCU2 (Windows-BidCos-Dienst wird nicht unterstützt)
 # - Firewall in der CCU muss so konfiguriert sein, das IPS Zugriff
 #   auf die ReGa HSS Logikschicht hat.
@@ -33,6 +33,9 @@
 #     2000 neue Variablen entstanden.
 #
 # ChangeLog:
+# 20.04.2015
+# BugFix:   CURL-Sendet einen Header welche die CCU nicht unterstützt.
+#
 # 20.08.2015
 #  Neu:     Diverse Geräte-Typen und Kanäle im Mapping ergänzt. Teilweise
 #           nur vorbereitet. Es fehlen bei den neuen Geräten noch viele Profile.
@@ -1194,10 +1197,11 @@ function LoadHMScript($HMAddress, $HMScript)
     $header[] = "Content-type: text/plain;charset=\"UTF-8\"";
     $ch = curl_init('http://' . $HMAddress . ':8181/ReadAll.exe');
     curl_setopt($ch, CURLOPT_HEADER, false);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
     curl_setopt($ch, CURLOPT_FAILONERROR, true);
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $HMScript);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, 20000 /* [Objekt #20000 existiert nicht] */);
     curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
