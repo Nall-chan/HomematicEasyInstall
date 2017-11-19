@@ -137,3 +137,22 @@ Unterstützt bei der Ersteinrichtung oder Erweiterung von Homematic-Geräten in 
    * Folgende Kanal-Typen für bestehende Geräte-Typen ergänzt:  
 
     - AIR_PRESSURE  (Profil fehlt noch)
+
+   **Version 1.48:**
+
+   BugFix:  
+
+   * CURL-Sendet einen Header welche die CCU nicht unterstützt.
+
+   **Version 1.50:**
+
+   BugFix:  
+
+   * Es wurden Variablen falsch benannt und Fehler im Script erzeugt, wenn das Mapping unvollständig war (z.B. die ganzen TODO Einträge)   
+
+   Neu:  
+
+   * Homematic-IP wird unterstützt (sofern IPS-Version paßt !)  
+   * Verlinkung auf Gewerke (GewerkCat) kann deaktiviert werden.  
+   * Erstellen von Hilfsvariablen und angepaßten Aktions-Scripten kann deaktiviert werden. (ScriptCat)  
+
