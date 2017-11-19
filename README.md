@@ -1,13 +1,13 @@
 # HomeMatic-EasyInstall
-**Version 1.47**  
+**Version 1.50**  
 
 ## Inhaltsverzeichniss
 
 1. [Funktionsumfang](#1-funktionsumfang)  
 2. [Voraussetzungen](#2-voraussetzungen)  
 3. [Installation](#3-verwendung)  
-4. [Mapping] (#4-mapping)  
-5. [Screenshots] (#5-screenshots)  
+4. [Mapping](#4-mapping)  
+5. [Screenshots](#5-screenshots)  
 6. [Anhang](#6-anhang)  
 
 ## 1. Funktionsumfang
