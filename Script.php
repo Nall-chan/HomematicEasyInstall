@@ -2,8 +2,8 @@
 
 # HomeMatic EasyInstall
 ################################################################################
-# Version : 1.47 
-# Datum : 20.08.2015
+# Version : 1.50
+# Datum : 19.11.2017
 # Author: Michael Tröger (mt@neo-ami.de)
 #
 # Beschreibung:
@@ -33,11 +33,23 @@
 #     2000 neue Variablen entstanden.
 #
 # ChangeLog:
+#
+# 19.11.2017
+#  Neu:     Homematic-IP wird unterstützt (sofern IPS-Version paßt !)
+#  Neu:     Verlinkung auf Gewerke (GewerkCat) kann deaktiviert werden.
+#  Neu:     Erstellen von Hilfsvariablen und angepaßten Aktions-Scripten kann
+#           deaktiviert werden. (ScriptCat)
+#  Bugfix:  Es wurden Variablen falsch benannt und Fehler im Script erzeugt,
+#           wenn das Mapping unvollständig war (z.B. die ganzen TODO Einträge) 
+#
+# 20.04.2017
+# Bugfix:   CURL-Sendet einen Header welche die CCU nicht unterstützt.
+#
 # 20.08.2015
 #  Neu:     Diverse Geräte-Typen und Kanäle im Mapping ergänzt. Teilweise
 #           nur vorbereitet. Es fehlen bei den neuen Geräten noch viele Profile.
 #           Im Mapping an dem Kommentar  // TODO zu erkennen.
-#  
+#
 # 29.07.2015
 # Bugfix:   Auf der CCU2 sind alle internen Interface-IDs der BidCos-Dienste
 #           nicht fest vergeben. Außer dem immer vorhandenen BidCos-RF.
@@ -74,18 +86,22 @@
 #               ....
 #
 #
+
 # Konfiguration (1.CCU):
 $HMCcuAddress[] = '192.168.201.200'; // IP oder DNS Name
 # Konfiguration (2.CCU):
 //$HMCcuAddress[] = 'ccu'; // IP oder DNS Name
-# Konfiguration IPS:
-$OhneRaum = true; //true = alle Geräte anlegen, auch wenn kein Raum zugeordnet wurde.
-// false = nur Geräte anlegen, welche in der CCU einem Raum zugeordnet wurden.
 
-$RaumCat = 0; // ID für Kategorie der Räume  // 0 = neu anlegen oder im root suchen
-$GewerkCat = 0; // ID für Kategorie Gewerke  // 0 = neu anlegen oder im root suchen
+# Konfiguration IPS:
+$OhneRaum = true; // true = alle Geräte anlegen, auch wenn kein Raum zugeordnet wurde.
+                  // false = nur Geräte anlegen, welche in der CCU einem Raum zugeordnet wurden.
+$MitStatusmeldungen= true;   // true = Auch MAINTENANCE Kanäle anlegen.
+                             // false = Keine MAINTENANCE Kanäle anlegen.
+$RaumCat = 0; // ID für Kategorie der Räume  // 0 = neu anlegen oder vorhandene im root suchen
+$GewerkCat = 0; // ID für Kategorie Gewerke  // 0 = neu anlegen oder vorhandene im root suchen // -1 = für nicht anlegen
 $GewerkTyp = 1; // Gewerke anlegen als Kategorie (0) oder als Dummy-Instanz (1)
-$ScriptCat = 0; // ID für HomeMatic Aktions-Scripte // 0 = neu anlegen oder im root suchen
+$ScriptCat = 0; // ID für HomeMatic Aktions-Scripte // 0 = neu anlegen oder im root suchen // -1= für nicht anlegen
+
 // Datenpunkte wo 'Status emulieren' aktiv sein soll.
 $Emulate = array('SET_TEMPERATURE', 'SETPOINT', 'LED_STATUS');
 
@@ -112,13 +128,16 @@ $Emulate = array('SET_TEMPERATURE', 'SETPOINT', 'LED_STATUS');
 #            Leider auch für Geräte welche gar nicht schaltbar sind, wie Rauchmelder
 #            oder TKF. Mit false / true kann dieses Verhalten korrigiert werden.
 #
-# 'Name Raum' = Name der Variable unterhalb vom Gerät. 
+# 'Name Raum' = Name der Variable unterhalb vom Gerät.
 #               Es stehen folgende Platzhalter zur Verfügung:
-#		  %1$s = Name vom Gerät %2$s = Name vom Raum
-#		  
+#                    %1$s = Name vom Gerät
+#                    %2$s = Name vom Raum
+#
 # 'Name Gewerk' = Name des erzeugen Links innerhalb des Gewerkes, welcher auf die Variable zeigt.
-#		  Es stehen folgende Platzhalter zur Verfügung:
-#		    %1$s = Name vom Gerät %2$s = Name vom Raum %3$s = Name vom Gewerk
+#                 Es stehen folgende Platzhalter zur Verfügung:
+#                       %1$s = Name vom Gerät
+#                       %2$s = Name vom Raum
+#                       %3$s = Name vom Gewerk
 
 $TypMappingProfil = array(
     'VIRTUAL_KEY' => array(),
@@ -139,6 +158,7 @@ $TypMappingProfil = array(
         )
     ),
     'KEY' => array(), // kein Zuordnung aber anlegen
+    'KEY_TRANSCEIVER' => array(), // kein Zuordnung aber anlegen	
     'RAINDETECTOR' => array(
         'STATE' => array(
             'Name Raum' => 'Regen',
@@ -241,6 +261,86 @@ $TypMappingProfil = array(
             'Name Gewerk' => '', // nicht verlinken
             'Profil' => '', // ~Battery
             'Action' => false
+        )
+    ),
+	'SWITCH_SENSOR' => array(
+        'STATE' => array(
+            'Name Raum' => 'Zustand',
+            'Name Gewerk' => '%1$s',
+            'Profil' => '',
+            'Action' => true
+        ),
+        'ERROR' => array(
+            'Name Raum' => 'Fehler',
+            'Name Gewerk' => '', // nicht verlinken
+            'Profil' => '', // FEHLT
+            'Action' => false
+        ),
+        'ERROR_SABOTAGE' => array(
+            'Name Raum' => 'Sabotage',
+            'Name Gewerk' => '', // nicht verlinken
+            'Profil' => '', // FEHLT
+            'Action' => false
+        ),		
+        'LOWBAT' => array(
+            'Name Raum' => 'Batterie',
+            'Name Gewerk' => '', // nicht verlinken
+            'Profil' => '', // ~Battery
+            'Action' => false
+        )
+    ),
+	'SWITCH_PANIC' => array(
+        'STATE' => array(
+            'Name Raum' => 'Zustand',
+            'Name Gewerk' => '%1$s',
+            'Profil' => '',
+            'Action' => true
+        ),
+        'ERROR' => array(
+            'Name Raum' => 'Fehler',
+            'Name Gewerk' => '', // nicht verlinken
+            'Profil' => '', // FEHLT
+            'Action' => false
+        ),
+        'ERROR_SABOTAGE' => array(
+            'Name Raum' => 'Sabotage',
+            'Name Gewerk' => '', // nicht verlinken
+            'Profil' => '', // FEHLT
+            'Action' => false
+        ),		
+        'LOWBAT' => array(
+            'Name Raum' => 'Batterie',
+            'Name Gewerk' => '', // nicht verlinken
+            'Profil' => '', // ~Battery
+            'Action' => false
+        )
+    ),
+	'ARMING' => array(
+        'STATE' => array(
+            'Name Raum' => 'Zustand Scharf',
+            'Name Gewerk' => '%1$s',
+            'Profil' => '',  // FEHLT
+            'Action' => false
+        ),
+        'ERROR_SABOTAGE' => array(
+            'Name Raum' => 'Sabotage',
+            'Name Gewerk' => '', // nicht verlinken
+            'Profil' => '', // FEHLT
+            'Action' => false
+        ),		
+        'LOWBAT' => array(
+            'Name Raum' => 'Batterie',
+            'Name Gewerk' => '', // nicht verlinken
+            'Profil' => '', // ~Battery
+            'Action' => false
+        )
+    ),
+	'SWITCH_VIRTUAL_RECEIVER' => array(
+        'STATE' => array(
+            'Name Raum' => 'Zustand',
+            'Name Gewerk' => '%1$s',
+            'Profil' => '', // ~Switch
+            'Action' => true
         )
     ),
     'SWITCH' => array(
@@ -360,6 +460,38 @@ $TypMappingProfil = array(
     ),
     'CENTRAL_KEY' => array(), // kein Zuordnung aber anlegen
     'DISPLAY' => array(), // kein Zuordnung aber anlegen
+	'ENERGIE_METER_TRANSMITTER' => array(
+        'CURRENT' => array(
+            'Name Raum' => 'Strom',
+            'Name Gewerk' => '%1$s Strom',
+            'Profil' => 'mAmpere.F',
+            'Action' => false
+        ),
+        'ENERGY_COUNTER' => array(
+            'Name Raum' => 'Gesamter Verbrauch',
+            'Name Gewerk' => '%1$s Gesamter Verbrauch',
+            'Profil' => 'Wh.F',
+            'Action' => false
+        ),
+        'FREQUENCY' => array(
+            'Name Raum' => 'Frequenz',
+            'Name Gewerk' => '%1$s Frequenz',
+            'Profil' => '~Hertz',
+            'Action' => false
+        ),
+        'POWER' => array(
+            'Name Raum' => 'Leistung',
+            'Name Gewerk' => '%1$s Leistung',
+            'Profil' => '~Watt.3680',
+            'Action' => false
+        ),
+        'VOLTAGE' => array(
+            'Name Raum' => 'Spannung',
+            'Name Gewerk' => '%1$s Spannung',
+            'Profil' => '~Volt',
+            'Action' => false
+        )
+	),
     'POWERMETER' => array(
         'CURRENT' => array(
             'Name Raum' => 'Strom',
@@ -392,6 +524,14 @@ $TypMappingProfil = array(
             'Action' => false
         )
     ),
+    'LUXMETER' => array(
+        'LUX' => array(
+            'Name Raum' => 'Helligkeit',
+            'Name Gewerk' => 'Helligkeit %2$s',
+            'Profil' => '~Illumination.F', 
+            'Action' => false
+        )
+    ),
     'DIGITAL_ANALOG_OUTPUT' => array(
         'FREQUENCY' => array()                  // TODO float mHz
     ),
@@ -408,6 +548,18 @@ $TypMappingProfil = array(
         'ENERGY_COUNTER' => array(),            // TODO  Wh float
         'POWER' => array()                      // TODO W float
     ),
+    'POWERMETER_IEC1' => array(                 // TODO
+        'GAS_ENERGY_COUNTER' => array(),        // TODO m³ float
+        'GAS_POWER' => array(),                 // TODO m³ float
+        'ENERGY_COUNTER' => array(),            // TODO Wh float
+        'IEC_ENERGY_COUNTER' => array(),        // TODO Wh float
+        'IEC_POWER' => array(),                 // TODO W float
+        'POWER' => array()                      // TODO W float
+    ),
+    'POWERMETER_IEC2' => array(                 // TODO
+        'IEC_ENERGY_COUNTER' => array(),        // TODO Wh float
+        'IEC_POWER' => array()                  // TODO W float
+    ),	
     'STATUS_INDICATOR' => array(                // TODO
         'STATE' => array()
     ),
@@ -620,9 +772,15 @@ $RequestState = array(
     'WIND_DIRECTION_RANGE',
     'WIND_SPEED',
     'LED_STATUS',
-    'PARTY_TEMPERATURE'
+    'PARTY_TEMPERATURE',
+	'LUX'
 );
-// Nicht Standardprofile
+
+# ENDE Konfig MAPPING
+
+
+
+// Nicht Standardprofile anlegen
 if (!IPS_VariableProfileExists('Wh.F'))
 {
     IPS_CreateVariableProfile('Wh.F', 2);
@@ -636,111 +794,150 @@ if (!IPS_VariableProfileExists('mAmpere.F'))
     IPS_SetVariableProfileDigits('mAmpere.F', 2);
     IPS_SetVariableProfileText('mAmpere.F', '', ' mA');
 }
-if (!IPS_VariableProfileExists('BlindControl.HM'))
-{
-    IPS_CreateVariableProfile('BlindControl.HM', 1);
 
-    IPS_SetVariableProfileAssociation('BlindControl.HM', -1, 'Ab', '', 0x0000FF);
-    IPS_SetVariableProfileAssociation('BlindControl.HM', 0, 'Stop', '', 0x000000);
-    IPS_SetVariableProfileAssociation('BlindControl.HM', 1, 'Auf', '', 0x0000FF);
-}
-if (!IPS_VariableProfileExists('ControlTemp.HM'))
+if ($ScriptCat != -1)
 {
-    IPS_CreateVariableProfile('ControlTemp.HM', 1);
-    IPS_SetVariableProfileIcon('ControlTemp.HM', 'Temperature');
-    IPS_SetVariableProfileAssociation('ControlTemp.HM', 1, 'Absenk Temp', '', 0xff0000);
-    IPS_SetVariableProfileAssociation('ControlTemp.HM', 2, 'Komfort Temp', '', 0xff9900);
-}
-if (!IPS_VariableProfileExists('ControlMode.HM'))
-{
-    IPS_CreateVariableProfile('ControlMode.HM', 1);
-    IPS_SetVariableProfileAssociation('ControlMode.HM', 0, 'Automatik', '', 0x339966);
-    IPS_SetVariableProfileAssociation('ControlMode.HM', 1, 'Manuell', '', 0xFF0000);
-    IPS_SetVariableProfileAssociation('ControlMode.HM', 2, 'Urlaub', '', 0x3366FF);
-    IPS_SetVariableProfileAssociation('ControlMode.HM', 3, 'Boost', '', 0xFFFF99);
-}
-if (!IPS_VariableProfileExists('DimmerControl.HM'))
-{
-    IPS_CreateVariableProfile('DimmerControl.HM', 1);
-    IPS_SetVariableProfileIcon('DimmerControl.HM', 'Intensity');
-    IPS_SetVariableProfileAssociation('DimmerControl.HM', -2, '0 %', '', 0x0000FF);
-    IPS_SetVariableProfileAssociation('DimmerControl.HM', -1, 'Dunkler', '', 0x339966);
-    IPS_SetVariableProfileAssociation('DimmerControl.HM', 0, 'Stop', '', 0x000000);
-    IPS_SetVariableProfileAssociation('DimmerControl.HM', 1, 'Zurück', '', 0xFF0000);
-    IPS_SetVariableProfileAssociation('DimmerControl.HM', 2, 'Heller', '', 0x339966);
-    IPS_SetVariableProfileAssociation('DimmerControl.HM', 3, '100 %', '', 0x0000FF);
-}
-if (!IPS_VariableProfileExists('DimmerSpeed.HM'))
-{
-    IPS_CreateVariableProfile('DimmerSpeed.HM', 2);
-    IPS_SetVariableProfileIcon('DimmerSpeed.HM', 'Intensity');
-    IPS_SetVariableProfileValues('DimmerSpeed.HM', 0, 30, 2);
-    IPS_SetVariableProfileText('DimmerSpeed.HM', '', ' s');
+	if (!IPS_VariableProfileExists('BlindControl.HM'))
+	{
+	    IPS_CreateVariableProfile('BlindControl.HM', 1);
+	
+	    IPS_SetVariableProfileAssociation('BlindControl.HM', -1, 'Ab', '', 0x0000FF);
+	    IPS_SetVariableProfileAssociation('BlindControl.HM', 0, 'Stop', '', 0x000000);
+	    IPS_SetVariableProfileAssociation('BlindControl.HM', 1, 'Auf', '', 0x0000FF);
+	}
+	if (!IPS_VariableProfileExists('ControlTemp.HM'))
+	{
+	    IPS_CreateVariableProfile('ControlTemp.HM', 1);
+	    IPS_SetVariableProfileIcon('ControlTemp.HM', 'Temperature');
+	    IPS_SetVariableProfileAssociation('ControlTemp.HM', 1, 'Absenk Temp', '', 0xff0000);
+	    IPS_SetVariableProfileAssociation('ControlTemp.HM', 2, 'Komfort Temp', '', 0xff9900);
+	}
+	if (!IPS_VariableProfileExists('ControlMode.HM'))
+	{
+	    IPS_CreateVariableProfile('ControlMode.HM', 1);
+	    IPS_SetVariableProfileAssociation('ControlMode.HM', 0, 'Automatik', '', 0x339966);
+	    IPS_SetVariableProfileAssociation('ControlMode.HM', 1, 'Manuell', '', 0xFF0000);
+	    IPS_SetVariableProfileAssociation('ControlMode.HM', 2, 'Urlaub', '', 0x3366FF);
+	    IPS_SetVariableProfileAssociation('ControlMode.HM', 3, 'Boost', '', 0xFFFF99);
+	}
+	if (!IPS_VariableProfileExists('DimmerControl.HM'))
+	{
+	    IPS_CreateVariableProfile('DimmerControl.HM', 1);
+	    IPS_SetVariableProfileIcon('DimmerControl.HM', 'Intensity');
+	    IPS_SetVariableProfileAssociation('DimmerControl.HM', -2, '0 %', '', 0x0000FF);
+	    IPS_SetVariableProfileAssociation('DimmerControl.HM', -1, 'Dunkler', '', 0x339966);
+	    IPS_SetVariableProfileAssociation('DimmerControl.HM', 0, 'Stop', '', 0x000000);
+	    IPS_SetVariableProfileAssociation('DimmerControl.HM', 1, 'Zurück', '', 0xFF0000);
+	    IPS_SetVariableProfileAssociation('DimmerControl.HM', 2, 'Heller', '', 0x339966);
+	    IPS_SetVariableProfileAssociation('DimmerControl.HM', 3, '100 %', '', 0x0000FF);
+	}
+	if (!IPS_VariableProfileExists('DimmerSpeed.HM'))
+	{
+	    IPS_CreateVariableProfile('DimmerSpeed.HM', 2);
+	    IPS_SetVariableProfileIcon('DimmerSpeed.HM', 'Intensity');
+	    IPS_SetVariableProfileValues('DimmerSpeed.HM', 0, 30, 2);
+	    IPS_SetVariableProfileText('DimmerSpeed.HM', '', ' s');
+	}
+	
+	
+	
+	$AddOnMappings = array(
+	    'BLIND' => array(
+	        'CONTROL' => array(
+	            'Name Raum' => 'Steuerung',
+	            'Name Gewerk' => 'Steuerung %2$s',
+	            'Profil' => 'BlindControl.HM',
+	            'Action' => 'BLIND_SCRIPT',
+	            'VarTyp' => 1
+	        )
+	    ),
+	    'THERMALCONTROL_TRANSMIT' => array(
+	        'CONTROL_TEMP' => array(
+	            'Name Raum' => 'Soll Temperatur Vorwahl',
+	            'Name Gewerk' => 'Soll Temperatur Vorwahl %2$s',
+	            'Profil' => 'ControlTemp.HM',
+	            'Action' => 'CONTROL_TEMP_SCRIPT',
+	            'VarTyp' => 1
+	        )
+	    ),
+	    'CLIMATECONTROL_RT_TRANSCEIVER' => array(
+	        'CONTROL_TEMP' => array(
+	            'Name Raum' => 'Soll Temperatur Vorwahl',
+	            'Name Gewerk' => 'Soll Temperatur Vorwahl %2$s',
+	            'Profil' => 'ControlTemp.HM',
+	            'Action' => 'CONTROL_TEMP_SCRIPT',
+	            'VarTyp' => 1
+	        )
+	    ),
+	    'DIMMER' => array(
+	        'DIMMER_CONTROL' => array(
+	            'Name Raum' => 'Steuerung',
+	            'Name Gewerk' => 'Steuerung %2$s',
+	            'Profil' => 'DimmerControl.HM',
+	            'Action' => 'DIMMER_SCRIPT',
+	            'VarTyp' => 1
+	        ),
+	        'RAMP_TIME' => array(
+	            'Name Raum' => 'Geschwindigkeit',
+	            'Name Gewerk' => 'Geschwindigkeit %2$s',
+	            'Profil' => 'DimmerSpeed.HM',
+	            'Action' => 'DIMMER_SCRIPT',
+	            'VarTyp' => 2
+	        )
+	    ),
+	    'VIRTUAL_DIMMER' => array(
+	        'DIMMER_CONTROL' => array(
+	            'Name Raum' => 'Steuerung',
+	            'Name Gewerk' => 'Steuerung %2$s',
+	            'Profil' => 'DimmerControl.HM',
+	            'Action' => 'DIMMER_SCRIPT',
+	            'VarTyp' => 1
+	        ),
+	        'RAMP_TIME' => array(
+	            'Name Raum' => 'Geschwindigkeit',
+	            'Name Gewerk' => 'Geschwindigkeit %2$s',
+	            'Profil' => 'DimmerSpeed.HM',
+	            'Action' => 'DIMMER_SCRIPT',
+	            'VarTyp' => 2
+	        )
+	    )
+	);
 }
 
-# ENDE Konfig
 
-$AddOnMappings = array(
-    'BLIND' => array(
-        'CONTROL' => array(
-            'Name Raum' => 'Steuerung',
-            'Name Gewerk' => 'Steuerung %2$s',
-            'Profil' => 'BlindControl.HM',
-            'Action' => 'BLIND_SCRIPT',
-            'VarTyp' => 1
-        )
-    ),
-    'THERMALCONTROL_TRANSMIT' => array(
-        'CONTROL_TEMP' => array(
-            'Name Raum' => 'Soll Temperatur Vorwahl',
-            'Name Gewerk' => 'Soll Temperatur Vorwahl %2$s',
-            'Profil' => 'ControlTemp.HM',
-            'Action' => 'CONTROL_TEMP_SCRIPT',
-            'VarTyp' => 1
-        )
-    ),
-    'CLIMATECONTROL_RT_TRANSCEIVER' => array(
-        'CONTROL_TEMP' => array(
-            'Name Raum' => 'Soll Temperatur Vorwahl',
-            'Name Gewerk' => 'Soll Temperatur Vorwahl %2$s',
-            'Profil' => 'ControlTemp.HM',
-            'Action' => 'CONTROL_TEMP_SCRIPT',
-            'VarTyp' => 1
-        )
-    ),
-    'DIMMER' => array(
-        'DIMMER_CONTROL' => array(
-            'Name Raum' => 'Steuerung',
-            'Name Gewerk' => 'Steuerung %2$s',
-            'Profil' => 'DimmerControl.HM',
-            'Action' => 'DIMMER_SCRIPT',
-            'VarTyp' => 1
-        ),
-        'RAMP_TIME' => array(
-            'Name Raum' => 'Geschwindigkeit',
-            'Name Gewerk' => 'Geschwindigkeit %2$s',
-            'Profil' => 'DimmerSpeed.HM',
-            'Action' => 'DIMMER_SCRIPT',
-            'VarTyp' => 2
-        )
-    ),
-    'VIRTUAL_DIMMER' => array(
-        'DIMMER_CONTROL' => array(
-            'Name Raum' => 'Steuerung',
-            'Name Gewerk' => 'Steuerung %2$s',
-            'Profil' => 'DimmerControl.HM',
-            'Action' => 'DIMMER_SCRIPT',
-            'VarTyp' => 1
-        ),
-        'RAMP_TIME' => array(
-            'Name Raum' => 'Geschwindigkeit',
-            'Name Gewerk' => 'Geschwindigkeit %2$s',
-            'Profil' => 'DimmerSpeed.HM',
-            'Action' => 'DIMMER_SCRIPT',
-            'VarTyp' => 2
-        )
-    )
-);
+if ($RaumCat == 0) // neu anlegen oder im root suchen
+{
+    $RaumCat = GetOrCreateCategoryByName(0, "Räume");
+}
+else // vorhanden ?
+{
+    $parent = @IPS_GetObject($RaumCat);
+    if ($parent === false)
+        die("Manuelle Angabe der ID für Räume fehlerhaft!");
+}
+
+if ($GewerkCat == 0) // neu anlegen oder im root suchen
+{
+    $GewerkCat = GetOrCreateCategoryByName(0, "Gewerke");
+}
+elseif ($GewerkCat >0) // vorhanden ?
+{
+    $parent = @IPS_GetObject($GewerkCat);
+    if ($parent === false)
+        die("Manuelle Angabe der ID für Gewerke fehlerhaft!");
+}
+
+if ($ScriptCat == 0) // neu anlegen oder im root suchen
+{
+    $ScriptCat = GetOrCreateCategoryByName(0, "Aktions-Scripte");
+}
+elseif ($ScriptCat >0) // vorhanden ?
+{
+    $parent = @IPS_GetObject($ScriptCat);
+    if ($parent === false)
+        die("Manuelle Angabe der ID für Scripte fehlerhaft!");
+}
+
 
 ini_set('max_execution_time', count($HMCcuAddress) * 120);
 
@@ -767,58 +964,34 @@ foreach ($HMCcuAddress as $key => $IP)
         $xml = ReadCCUInterfaces($IP);
         if ($xml[0] === false)
             die($xml[1]);
-        if (count($xml->xpath('//Interface[@Name="BidCos-Wired"]')) > 0)
-            $HMModus = 0;
-        else
-            $HMModus = 1;
+        $OpenRF = (count($xml->xpath('//Interface[@Name="BidCos-RF"]')) > 0);
+		$OpenHmIP = (count($xml->xpath('//Interface[@Name="HmIP-RF"]')) > 0);
+		$OpenWired = (count($xml->xpath('//Interface[@Name="BidCos-Wired"]')) > 0);
         # "Erzeuge HomeMatic-Socket für CCU mit der Adresse " . $IP . PHP_EOL."  Und lege den Ereignis-Server in IPS auf Port " . $nextPort.PHP_EOL;
         echo "--------------------------------------------------------------------" . PHP_EOL;
         $ObjID = IPS_CreateInstance("{A151ECE9-D733-4FB9-AA15-7F7DD10C58AF}");
         usleep(50000 /* [Objekt #50000 existiert nicht] */);
         IPS_SetName($ObjID, "HomeMatic Socket - " . $IP);
-        IPS_SetProperty($ObjID, 'Port', $nextPort);
-        IPS_SetProperty($ObjID, 'Open', true);
-        IPS_SetProperty($ObjID, 'Mode', $HMModus);
-        IPS_SetProperty($ObjID, 'Host', $IP);
+		$Config = json_decode(IPS_GetConfiguration($ObjID),true);
+		$Config['Host']= $IP;
+		$Config['Open']= true;
+		$Config['Port']= $nextPort;
+		if (array_key_exists('Mode', $Config))
+		{
+			$Config['Mode']= $OpenWired ? 0 : 1;
+			if ($OpenHmIP)
+			echo "--------ACHTUNG HOMEMATIC IP INTERFACE GEFUNDEN ! IPS VERSION IST ABER ZU ALT ! -----".PHP_EOL; 
+		} else {
+			$Config['RFOpen'] = $OpenRF;
+			$Config['WROpen'] = $OpenWired;
+			$Config['IPOpen'] = $OpenHmIP;
+		}
+		IPS_SetConfiguration($ObjID,json_encode($Config));
         usleep(50000 /* [Objekt #50000 existiert nicht] */);
         @IPS_ApplyChanges($ObjID);
         $nextPort++;
         $HMSockets[$IP] = $ObjID;
     }
-}
-
-
-if ($RaumCat == 0) // neu anlegen oder im root suchen
-{
-    $RaumCat = GetOrCreateCategoryByName(0, "Räume");
-}
-else // vorhanden ?
-{
-    $parent = @IPS_GetObject($RaumCat);
-    if ($parent === false)
-        die("Manuelle Angabe der ID für Räume nicht vorhanden!");
-}
-
-if ($GewerkCat == 0) // neu anlegen oder im root suchen
-{
-    $GewerkCat = GetOrCreateCategoryByName(0, "Gewerke");
-}
-else // vorhanden ?
-{
-    $parent = @IPS_GetObject($GewerkCat);
-    if ($parent === false)
-        die("Manuelle Angabe der ID für Gewerke nicht vorhanden!");
-}
-
-if ($ScriptCat == 0) // neu anlegen oder im root suchen
-{
-    $ScriptCat = GetOrCreateCategoryByName(0, "Aktions-Scripte");
-}
-else // vorhanden ?
-{
-    $parent = @IPS_GetObject($ScriptCat);
-    if ($parent === false)
-        die("Manuelle Angabe der ID für Scripte nicht vorhanden!");
 }
 
 $HMDevices = IPS_GetInstanceListByModuleID("{EE4A81C6-5C90-4DB7-AD2F-F6BBD521412E}");
@@ -851,21 +1024,24 @@ foreach ($HMCcuAddress as $Key)
     $xml = ReadCCUDevices($Key);
     if ($xml[0] === false)
         die($xml[1]);
-
     foreach ($xml->Room as $Room)
     {
         $Rooms[utf8_decode((string) $Room['Name'])] = GetOrCreateCategoryByName($RaumCat, utf8_decode((string) $Room['Name']));
     }
     if ($OhneRaum)
         $Rooms['# Ohne Raum'] = GetOrCreateCategoryByName($RaumCat, '# Ohne Raum');
-    $Rooms['# Statusmeldungen'] = GetOrCreateCategoryByName($RaumCat, '# Statusmeldungen');
-    foreach ($xml->{"Function"} as $Function) // Gewerke erzeugen
-    {
-        if ($GewerkTyp == 0)
-            $Functions[utf8_decode((string) $Function['Name'])] = GetOrCreateCategoryByName($GewerkCat, utf8_decode((string) $Function['Name']));
-        elseif ($GewerkTyp == 1)
-            $Functions[utf8_decode((string) $Function['Name'])] = GetOrCreateDummyByName($GewerkCat, utf8_decode((string) $Function['Name']));
-    }
+	if ($MitStatusmeldungen)
+    	$Rooms['# Statusmeldungen'] = GetOrCreateCategoryByName($RaumCat, '# Statusmeldungen');
+	if ($GewerkCat != -1)
+	{
+	    foreach ($xml->{'Function'} as $Function) // Gewerke erzeugen
+	    {
+	        if ($GewerkTyp == 0)
+	            $Functions[utf8_decode((string) $Function['Name'])] = GetOrCreateCategoryByName($GewerkCat, utf8_decode((string) $Function['Name']));
+	        elseif ($GewerkTyp == 1)
+	            $Functions[utf8_decode((string) $Function['Name'])] = GetOrCreateDummyByName($GewerkCat, utf8_decode((string) $Function['Name']));
+	    }
+	}
     foreach ($xml->Device as $Device)
     {
         foreach ($Device->Channel as $Channel)
@@ -886,10 +1062,13 @@ foreach ($HMCcuAddress as $Key)
                 case 'BidCos-Wired':
                     $Protocol = 1;
                     break;
-                default:  // falsches Interface (nicht Radio oder Wired)
-                    echo "Gerät mit der Addresse " . (string) $Channel['Address'] . " hat keine unterstütztes Interface (" . (string) $Device['Interface'] . ")." . PHP_EOL;
-                    echo "  Gerät mit Namen '" . utf8_decode((string) $Channel['Name']) . "' wird nicht erzeugt." . PHP_EOL;
-                    echo "--------------------------------------------------------------------" . PHP_EOL;
+				case 'HmIP-RF':
+					$Protocol = 2;
+					break;
+                default:  // falsches Interface (nicht HmIP, Radio oder Wired)
+//                    echo "Gerät mit der Addresse " . (string) $Channel['Address'] . " hat keine unterstütztes Interface (" . (string) $Device['Interface'] . ")." . PHP_EOL;
+//                    echo "  Gerät mit Namen '" . utf8_decode((string) $Channel['Name']) . "' wird nicht erzeugt." . PHP_EOL;
+//                    echo "--------------------------------------------------------------------" . PHP_EOL;
                     continue 2;
             }
             // Datenpunkte im XML zählen... wenn 0 nicht anlegen
@@ -909,24 +1088,31 @@ foreach ($HMCcuAddress as $Key)
             {
                 $Room = $Channel->addChild('Room');
                 if ((string) $Channel['ChnLabel'] == 'MAINTENANCE')
+				{
+					if (!$MitStatusmeldungen)
+						continue;
                     $Room->addAttribute('Name', '# Statusmeldungen');
+				}
                 else
                     $Room->addAttribute('Name', '# Ohne Raum');
             }
             $HMDevice = GetOrCreateHMDevice($Rooms[utf8_decode((string) $Channel->Room[0]['Name'])], utf8_decode((string) $Channel['Name']), (string) $Channel['Address'], $Protocol, $HMParent);
             // Jetzt zusätzliche Elemente Erzeugen
-            if (array_key_exists(utf8_decode((string) $Channel['ChnLabel']), $AddOnMappings))
-            {
-                $AddOnMapping = $AddOnMappings[utf8_decode((string) $Channel['ChnLabel'])];
-                foreach ($AddOnMapping as $ident => $Var)
-                {
-                    $VarId = IPS_CreateVariable($Var['VarTyp']);
-                    IPS_SetParent($VarId, $HMDevice);
-                    IPS_SetName($VarId, $ident);
-                    IPS_SetIdent($VarId, $ident);
-                }
-                $Mapping = array_merge($Mapping, $AddOnMapping);
-            }
+			if ($ScriptCat != -1)
+			{
+	            if (array_key_exists(utf8_decode((string) $Channel['ChnLabel']), $AddOnMappings))
+	            {
+	                $AddOnMapping = $AddOnMappings[utf8_decode((string) $Channel['ChnLabel'])];
+	                foreach ($AddOnMapping as $ident => $Var)
+	                {
+	                    $VarId = IPS_CreateVariable($Var['VarTyp']);
+	                    IPS_SetParent($VarId, $HMDevice);
+	                    IPS_SetName($VarId, $ident);
+	                    IPS_SetIdent($VarId, $ident);
+	                }
+	                $Mapping = array_merge($Mapping, $AddOnMapping);
+	            }
+			}
             if (array_key_exists('forceDP', $Mapping))
             {
                 foreach ($Mapping['forceDP'] as $ident => $VarTyp)
@@ -938,7 +1124,7 @@ foreach ($HMCcuAddress as $Key)
                         IPS_SetName($VarId, $ident);
                         IPS_SetIdent($VarId, $ident);
                     }
-                    HM_RequestStatus($HMDevice, $ident);
+                    @HM_RequestStatus($HMDevice, $ident);
                 }
             }
             $Childs = IPS_GetChildrenIDs($HMDevice);
@@ -956,57 +1142,73 @@ foreach ($HMCcuAddress as $Key)
                 $Obj = IPS_GetObject($Var);
                 if (array_key_exists($Obj['ObjectIdent'], $Mapping))
                 {
-                    $Name = sprintf($Mapping[$Obj['ObjectIdent']]['Name Raum'], utf8_decode((string) $Channel['Name']), utf8_decode((string) $Channel->Room[0]['Name']));
-//				    $Name = 		$NameMappingRoom[$Obj['ObjectIdent']];
-                    IPS_SetName($Var, $Name);
-                    // Profil ändern, wenn nicht leer im Mapping
-                    if ($Mapping[$Obj['ObjectIdent']]['Profil'] <> '')
-                    {
-                        if (!@IPS_SetVariableCustomProfile($Var, $Mapping[$Obj['ObjectIdent']]['Profil']))
-                        {
-                            echo "Fehler bei Gerät mit der Addresse " . (string) $Channel['Address'] . " und Datenpunkt " . $Obj['ObjectIdent'] . PHP_EOL;
-                            echo "  Profil '" . $Mapping[$Obj['ObjectIdent']]['Profil'] . "' konnte nicht zugewiesen werden." . PHP_EOL;
-                            echo "--------------------------------------------------------------------" . PHP_EOL;
-                        }
-                    }
-                    if (IPS_GetVariable($Var)['VariableAction'] > 0)
-                    { // Standardaktion möglich
-                        if ($Mapping[$Obj['ObjectIdent']]['Action'] === true)
-                            IPS_SetVariableCustomAction($Var, 0);
-                        elseif ($Mapping[$Obj['ObjectIdent']]['Action'] === false)
-                            IPS_SetVariableCustomAction($Var, 1);
-                    } else
-                    {
-                        if ($Mapping[$Obj['ObjectIdent']]['Action'] === true)
-                        {
-                            echo "Gerät mit der Addresse " . (string) $Channel['Address'] . " hat keine Standardaktion," . PHP_EOL;
-                            echo "  für den Datenpunkt " . $Obj['ObjectIdent'] . " des Gerätes mit Namen '" . utf8_decode((string) $Channel['Name']) . "'." . PHP_EOL;
-                            echo "--------------------------------------------------------------------" . PHP_EOL;
-                        }
-                    }
-                    if (is_string($Mapping[$Obj['ObjectIdent']]['Action']))
-                    {
-                        IPS_SetVariableCustomAction($Var, GetOrCreateScript($ScriptCat, $Mapping[$Obj['ObjectIdent']]['Action']));
-                    }
+				    if (array_key_exists('Name Raum',$Mapping[$Obj['ObjectIdent']]))
+					{
+	                    $Name = sprintf($Mapping[$Obj['ObjectIdent']]['Name Raum'], utf8_decode((string) $Channel['Name']), utf8_decode((string) $Channel->Room[0]['Name']));
+	                    IPS_SetName($Var, $Name);
+					}
+				    if (array_key_exists('Profil',$Mapping[$Obj['ObjectIdent']]))
+					{
+	                    // Profil ändern, wenn nicht leer im Mapping
+	                    if ($Mapping[$Obj['ObjectIdent']]['Profil'] <> '')
+	                    {
+	                        if (!@IPS_SetVariableCustomProfile($Var, $Mapping[$Obj['ObjectIdent']]['Profil']))
+	                        {
+	                            echo "Fehler bei Gerät mit der Addresse " . (string) $Channel['Address'] . " und Datenpunkt " . $Obj['ObjectIdent'] . PHP_EOL;
+	                            echo "  Profil '" . $Mapping[$Obj['ObjectIdent']]['Profil'] . "' konnte nicht zugewiesen werden." . PHP_EOL;
+	                            echo "--------------------------------------------------------------------" . PHP_EOL;
+	                        }
+	                    }
+					}
+					
+				    if (array_key_exists('Action',$Mapping[$Obj['ObjectIdent']]))
+					{
+	                    if (IPS_GetVariable($Var)['VariableAction'] > 0)
+	                    { // Standardaktion möglich
+	                        if ($Mapping[$Obj['ObjectIdent']]['Action'] === true)
+	                            IPS_SetVariableCustomAction($Var, 0);
+	                        elseif ($Mapping[$Obj['ObjectIdent']]['Action'] === false)
+	                            IPS_SetVariableCustomAction($Var, 1);
+	                    } else
+	                    {
+	                        if ($Mapping[$Obj['ObjectIdent']]['Action'] === true)
+	                        {
+	                            echo "Gerät mit der Addresse " . (string) $Channel['Address'] . " hat keine Standardaktion," . PHP_EOL;
+	                            echo "  für den Datenpunkt " . $Obj['ObjectIdent'] . " des Gerätes mit Namen '" . utf8_decode((string) $Channel['Name']) . "'." . PHP_EOL;
+	                            echo "--------------------------------------------------------------------" . PHP_EOL;
+	                        }
+	                    }
+	                    if (is_string($Mapping[$Obj['ObjectIdent']]['Action']) && ($ScriptCat != -1))
+	                    {
+	                        IPS_SetVariableCustomAction($Var, GetOrCreateScript($ScriptCat, $Mapping[$Obj['ObjectIdent']]['Action']));
+	                    }
+					}
                     $DeviceHidden = false;
-                    // Link erzeugen zu Gewerk wenn Mapping nicht leer ist
-                    if ($Mapping[$Obj['ObjectIdent']]['Name Gewerk'] == '')
-                        continue;
-                    //
-                    // Schleife Gewerk
-                    foreach ($Channel->{'Function'} as $Function)
-                    {
-                        $Name = sprintf($Mapping[$Obj['ObjectIdent']]['Name Gewerk'], utf8_decode((string) $Channel['Name']), utf8_decode((string) $Channel->Room[0]['Name']), utf8_decode((string) $Function['Name']));
-                        $LnkID = IPS_CreateLink();
-                        IPS_SetLinkTargetID($LnkID, $Var);
-                        IPS_SetName($LnkID, $Name);
-                        IPS_SetParent($LnkID, $Functions[utf8_decode((string) $Function['Name'])]);
-                    }
+					if ($GewerkCat != -1)
+					{
+						if (array_key_exists('Name Gewerk',$Mapping[$Obj['ObjectIdent']]))
+						{
+		                    // Link erzeugen zu Gewerk wenn Mapping nicht leer ist
+		                    if ($Mapping[$Obj['ObjectIdent']]['Name Gewerk'] == '')
+		                        continue;
+		                    //
+		                    // Schleife Gewerk
+		                    foreach ($Channel->{'Function'} as $Function)
+		                    {
+		                        $Name = sprintf($Mapping[$Obj['ObjectIdent']]['Name Gewerk'], utf8_decode((string) $Channel['Name']), utf8_decode((string) $Channel->Room[0]['Name']), utf8_decode((string) $Function['Name']));
+		                        $LnkID = IPS_CreateLink();
+		                        IPS_SetLinkTargetID($LnkID, $Var);
+		                        IPS_SetName($LnkID, $Name);
+		                        IPS_SetParent($LnkID, $Functions[utf8_decode((string) $Function['Name'])]);
+		                    }
+						}
+					}
                 }
                 else
                 {
                     IPS_SetHidden($Var, true);
                 }
+				
                 if (in_array($Obj['ObjectIdent'], $Emulate))
                 {
                     IPS_SetProperty($HMDevice, 'EmulateStatus', true);
@@ -1194,14 +1396,15 @@ function LoadHMScript($HMAddress, $HMScript)
     $header[] = "Content-type: text/plain;charset=\"UTF-8\"";
     $ch = curl_init('http://' . $HMAddress . ':8181/ReadAll.exe');
     curl_setopt($ch, CURLOPT_HEADER, false);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
     curl_setopt($ch, CURLOPT_FAILONERROR, true);
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $HMScript);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, 20000 /* [Objekt #20000 existiert nicht] */);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, 20000);
     curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-    curl_setopt($ch, CURLOPT_TIMEOUT_MS, 20000 /* [Objekt #20000 existiert nicht] */);
+    curl_setopt($ch, CURLOPT_TIMEOUT_MS, 20000);
     $result = curl_exec($ch);
     curl_close($ch);
     if ($result === false)
