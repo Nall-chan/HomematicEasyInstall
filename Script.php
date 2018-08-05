@@ -752,6 +752,46 @@ $TypMappingProfil = array(
             'Action' => false
         )
     ),
+	'BRIGHTNESS_TRANSMITTER' => array(
+        'CURRENT_ILLUMINATION' => array(
+            'Name Raum' => 'Aktuelle Helligkeit',
+            'Name Gewerk' => '%1$s aktuelle Helligkeit',
+            'Profil' => '~Illumination.F',
+            'Action' => false
+        ),
+		'AVERAGE_ILLUMINATION' => array(
+            'Name Raum' => 'Durchschnittliche Helligkeit',
+            'Name Gewerk' => '%1$s durchschnittliche Helligkeit',
+            'Profil' => '~Illumination.F',
+            'Action' => false
+        ),
+		'HIGHEST_ILLUMINATION' => array(
+            'Name Raum' => 'Maximale Helligkeit',
+            'Name Gewerk' => '%1$s maximale Helligkeit',
+            'Profil' => '~Illumination.F',
+            'Action' => false
+        ),
+		'LOWEST_ILLUMINATION' => array(
+            'Name Raum' => 'Minimale Helligkeit',
+            'Name Gewerk' => '%1$s minimale Helligkeit',
+            'Profil' => '~Illumination.F',
+            'Action' => false
+        ),
+	),
+	'WATER_DETECTION_TRANSMITTER' => array(
+        'WATERLEVEL_DETECTED' => array(
+            'Name Raum' => 'Wasserstand erkannt',
+            'Name Gewerk' => '%1$s Wasserstand erkannt',
+            'Profil' => '~Alert',
+            'Action' => false
+        ),
+		'MOISTURE_DETECTED' => array(
+            'Name Raum' => 'Feuchtigkeit erkannt',
+            'Name Gewerk' => '%1$s Feuchtigkeit erkannt',
+            'Profil' => '~Alert',
+            'Action' => false
+        ),
+	),
     'SWITCH_INTERFACE' => array() // kein Zuordnung aber anlegen
 );
 
