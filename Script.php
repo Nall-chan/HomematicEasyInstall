@@ -738,6 +738,60 @@ $TypMappingProfil = array(
         'forceDP' => array('PARTY_START_DAY' => 1, 'PARTY_START_MONTH' => 1, 'PARTY_START_TIME' => 1, 'PARTY_START_YEAR' => 1, 'PARTY_STOP_DAY' => 1, 'PARTY_STOP_MONTH' => 1, 'PARTY_STOP_TIME' => 1, 'PARTY_STOP_YEAR' => 1, 'PARTY_TEMPERATURE' => 2)
     //'FAULT_REPORTING' //fehlt
     ),
+    'CLIMATE_TRANSCEIVER' => array(
+        'ACTUAL_TEMPERATURE' => array(
+            'Name Raum' => 'Temperatur',
+            'Name Gewerk' => 'Temperatur %2$s',
+            'Profil' => '', // ~Temperature
+            'Action' => false
+        ),
+        'HUMIDITY' => array(
+            'Name Raum' => 'Luftfeuchte',
+            'Name Gewerk' => 'Luftfeuchte %2$s',
+            'Profil' => '', // ~Humidity
+            'Action' => false
+        )
+    ),
+	'BRIGHTNESS_TRANSMITTER' => array(
+        'CURRENT_ILLUMINATION' => array(
+            'Name Raum' => 'Aktuelle Helligkeit',
+            'Name Gewerk' => '%1$s aktuelle Helligkeit',
+            'Profil' => '~Illumination.F',
+            'Action' => false
+        ),
+		'AVERAGE_ILLUMINATION' => array(
+            'Name Raum' => 'Durchschnittliche Helligkeit',
+            'Name Gewerk' => '%1$s durchschnittliche Helligkeit',
+            'Profil' => '~Illumination.F',
+            'Action' => false
+        ),
+		'HIGHEST_ILLUMINATION' => array(
+            'Name Raum' => 'Maximale Helligkeit',
+            'Name Gewerk' => '%1$s maximale Helligkeit',
+            'Profil' => '~Illumination.F',
+            'Action' => false
+        ),
+		'LOWEST_ILLUMINATION' => array(
+            'Name Raum' => 'Minimale Helligkeit',
+            'Name Gewerk' => '%1$s minimale Helligkeit',
+            'Profil' => '~Illumination.F',
+            'Action' => false
+        ),
+	),
+	'WATER_DETECTION_TRANSMITTER' => array(
+        'WATERLEVEL_DETECTED' => array(
+            'Name Raum' => 'Wasserstand erkannt',
+            'Name Gewerk' => '%1$s Wasserstand erkannt',
+            'Profil' => '~Alert',
+            'Action' => false
+        ),
+		'MOISTURE_DETECTED' => array(
+            'Name Raum' => 'Feuchtigkeit erkannt',
+            'Name Gewerk' => '%1$s Feuchtigkeit erkannt',
+            'Profil' => '~Alert',
+            'Action' => false
+        ),
+	),
     'SWITCH_INTERFACE' => array() // kein Zuordnung aber anlegen
 );
 
