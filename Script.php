@@ -88,7 +88,7 @@
 #
 
 # Konfiguration (1.CCU):
-$HMCcuAddress[] = '192.168.201.200'; // IP oder DNS Name
+$HMCcuAddress[] = 'x.x.x.x'; // IP oder DNS Name
 # Konfiguration (2.CCU):
 //$HMCcuAddress[] = 'ccu'; // IP oder DNS Name
 
@@ -792,6 +792,30 @@ $TypMappingProfil = array(
             'Action' => false
         ),
 	),
+	'SHUTTER_TRANSMITTER' => array(
+		// ACTIVITY_STATE, LEVEL, LEVEL_STATUS, PROCESS, SECTION, SECTION_STATUS
+        'LEVEL' => array(
+            'Name Raum' => 'Rolladenhöhe',
+            'Name Gewerk' => '%1$s Rolladenhöhe',
+            'Profil' => '',
+            'Action' => false
+        ),
+        'ACTIVITY_STATE' => array(
+            'Name Raum' => 'Fahraktivität',
+            'Name Gewerk' => '%1$s Fahraktivität',
+            'Profil' => 'BlindActivity.HM',
+            'Action' => false
+        ),
+	),
+	'SHUTTER_VIRTUAL_RECEIVER' => array(
+		// ACTIVITY_STATE, LEVEL, LEVEL_STATUS, PROCESS, SECTION, SECTION_STATUS
+        'LEVEL' => array(
+            'Name Raum' => 'Rolladenhöhe',
+            'Name Gewerk' => '%1$s Rolladenhöhe',
+            'Profil' => '',
+            'Action' => true
+        ),
+	),
     'SWITCH_INTERFACE' => array() // kein Zuordnung aber anlegen
 );
 
@@ -827,7 +851,8 @@ $RequestState = array(
     'WIND_SPEED',
     'LED_STATUS',
     'PARTY_TEMPERATURE',
-	'LUX'
+	'LUX',
+	'ACTIVITY_STATE'
 );
 
 # ENDE Konfig MAPPING
@@ -858,6 +883,15 @@ if ($ScriptCat != -1)
 	    IPS_SetVariableProfileAssociation('BlindControl.HM', -1, 'Ab', '', 0x0000FF);
 	    IPS_SetVariableProfileAssociation('BlindControl.HM', 0, 'Stop', '', 0x000000);
 	    IPS_SetVariableProfileAssociation('BlindControl.HM', 1, 'Auf', '', 0x0000FF);
+	}
+	if (!IPS_VariableProfileExists('BlindActivity.HM'))
+	{
+	    IPS_CreateVariableProfile('BlindActivity.HM', 1);
+
+	    IPS_SetVariableProfileAssociation('BlindActivity.HM', 0, 'unbekannt', '', -1);
+	    IPS_SetVariableProfileAssociation('BlindActivity.HM', 1, 'aufwärts', '', -1);
+	    IPS_SetVariableProfileAssociation('BlindActivity.HM', 2, 'abwärts', '', -1);
+	    IPS_SetVariableProfileAssociation('BlindActivity.HM', 3, 'steht', '', -1);
 	}
 	if (!IPS_VariableProfileExists('ControlTemp.HM'))
 	{
@@ -897,6 +931,15 @@ if ($ScriptCat != -1)
 	
 	$AddOnMappings = array(
 	    'BLIND' => array(
+	        'CONTROL' => array(
+	            'Name Raum' => 'Steuerung',
+	            'Name Gewerk' => 'Steuerung %2$s',
+	            'Profil' => 'BlindControl.HM',
+	            'Action' => 'BLIND_SCRIPT',
+	            'VarTyp' => 1
+	        )
+	    ),
+	    'SHUTTER_VIRTUAL_RECEIVER' => array(
 	        'CONTROL' => array(
 	            'Name Raum' => 'Steuerung',
 	            'Name Gewerk' => 'Steuerung %2$s',
