@@ -1080,7 +1080,7 @@ foreach ($HMCcuAddress as $Key)
         die($xml[1]);
     foreach ($xml->Room as $Room)
     {
-        $Rooms[utf8_decode((string) $Room['Name'])] = GetOrCreateCategoryByName($RaumCat, utf8_decode((string) $Room['Name']));
+        $Rooms[(string) $Room['Name']] = GetOrCreateCategoryByName($RaumCat, (string) $Room['Name']);
     }
     if ($OhneRaum)
         $Rooms['# Ohne Raum'] = GetOrCreateCategoryByName($RaumCat, '# Ohne Raum');
@@ -1091,9 +1091,9 @@ foreach ($HMCcuAddress as $Key)
 	    foreach ($xml->{'Function'} as $Function) // Gewerke erzeugen
 	    {
 	        if ($GewerkTyp == 0)
-	            $Functions[utf8_decode((string) $Function['Name'])] = GetOrCreateCategoryByName($GewerkCat, utf8_decode((string) $Function['Name']));
+	            $Functions[(string) $Function['Name']] = GetOrCreateCategoryByName($GewerkCat, (string) $Function['Name']);
 	        elseif ($GewerkTyp == 1)
-	            $Functions[utf8_decode((string) $Function['Name'])] = GetOrCreateDummyByName($GewerkCat, utf8_decode((string) $Function['Name']));
+	            $Functions[(string) $Function['Name']] = GetOrCreateDummyByName($GewerkCat, (string) $Function['Name']);
 	    }
 	}
     foreach ($xml->Device as $Device)
@@ -1121,7 +1121,7 @@ foreach ($HMCcuAddress as $Key)
 					break;
                 default:  // falsches Interface (nicht HmIP, Radio oder Wired)
 //                    echo "Gerät mit der Addresse " . (string) $Channel['Address'] . " hat keine unterstütztes Interface (" . (string) $Device['Interface'] . ")." . PHP_EOL;
-//                    echo "  Gerät mit Namen '" . utf8_decode((string) $Channel['Name']) . "' wird nicht erzeugt." . PHP_EOL;
+//                    echo "  Gerät mit Namen '" . (string) $Channel['Name'] . "' wird nicht erzeugt." . PHP_EOL;
 //                    echo "--------------------------------------------------------------------" . PHP_EOL;
                     continue 2;
             }
@@ -1129,14 +1129,14 @@ foreach ($HMCcuAddress as $Key)
             if (count($Channel->xpath('Point')) == 0)
                 continue;
             // Typ vom Gerät aus der XML auswerten... für passendes Profil bestimmer DPs
-            if (!array_key_exists(utf8_decode((string) $Channel['ChnLabel']), $TypMappingProfil))
+            if (!array_key_exists((string) $Channel['ChnLabel'], $TypMappingProfil))
             {
                 echo "Gerät mit der Addresse " . (string) $Channel['Address'] . " hat keinen bekannten Kanaltyp (" . (string) $Channel['ChnLabel'] . ")." . PHP_EOL;
-                echo "  Gerät mit Namen '" . utf8_decode((string) $Channel['Name']) . "' wird nicht erzeugt." . PHP_EOL;
+                echo "  Gerät mit Namen '" . (string) $Channel['Name'] . "' wird nicht erzeugt." . PHP_EOL;
                 echo "--------------------------------------------------------------------" . PHP_EOL;
                 continue;
             }
-            $Mapping = $TypMappingProfil[utf8_decode((string) $Channel['ChnLabel'])];
+            $Mapping = $TypMappingProfil[(string) $Channel['ChnLabel']];
             // Für Geräte ohne Raum den Pseudo-Raumnamen angeben.
             if (!isset($Channel->Room[0]['Name']))
             {
@@ -1150,13 +1150,13 @@ foreach ($HMCcuAddress as $Key)
                 else
                     $Room->addAttribute('Name', '# Ohne Raum');
             }
-            $HMDevice = GetOrCreateHMDevice($Rooms[utf8_decode((string) $Channel->Room[0]['Name'])], utf8_decode((string) $Channel['Name']), (string) $Channel['Address'], $Protocol, $HMParent);
+            $HMDevice = GetOrCreateHMDevice($Rooms[(string) $Channel->Room[0]['Name']], (string) $Channel['Name'], (string) $Channel['Address'], $Protocol, $HMParent);
             // Jetzt zusätzliche Elemente Erzeugen
 			if ($ScriptCat != -1)
 			{
-	            if (array_key_exists(utf8_decode((string) $Channel['ChnLabel']), $AddOnMappings))
+	            if (array_key_exists((string) $Channel['ChnLabel'], $AddOnMappings))
 	            {
-	                $AddOnMapping = $AddOnMappings[utf8_decode((string) $Channel['ChnLabel'])];
+	                $AddOnMapping = $AddOnMappings[(string) $Channel['ChnLabel']];
 	                foreach ($AddOnMapping as $ident => $Var)
 	                {
 	                    $VarId = IPS_CreateVariable($Var['VarTyp']);
@@ -1185,7 +1185,7 @@ foreach ($HMCcuAddress as $Key)
             if (count($Childs) == 0)
             {
                 echo "Gerät mit der Addresse " . (string) $Channel['Address'] . " hat keine Datenpunkte." . PHP_EOL;
-                echo "  Gerät mit Namen '" . utf8_decode((string) $Channel['Name']) . "' wird wieder gelöscht." . PHP_EOL;
+                echo "  Gerät mit Namen '" . (string) $Channel['Name'] . "' wird wieder gelöscht." . PHP_EOL;
                 echo "--------------------------------------------------------------------" . PHP_EOL;
                 IPS_DeleteInstance($HMDevice);
                 continue;
@@ -1198,7 +1198,7 @@ foreach ($HMCcuAddress as $Key)
                 {
 				    if (array_key_exists('Name Raum',$Mapping[$Obj['ObjectIdent']]))
 					{
-	                    $Name = sprintf($Mapping[$Obj['ObjectIdent']]['Name Raum'], utf8_decode((string) $Channel['Name']), utf8_decode((string) $Channel->Room[0]['Name']));
+	                    $Name = sprintf($Mapping[$Obj['ObjectIdent']]['Name Raum'], (string) $Channel['Name'], (string) $Channel->Room[0]['Name']);
 	                    IPS_SetName($Var, $Name);
 					}
 				    if (array_key_exists('Profil',$Mapping[$Obj['ObjectIdent']]))
@@ -1228,7 +1228,7 @@ foreach ($HMCcuAddress as $Key)
 	                        if ($Mapping[$Obj['ObjectIdent']]['Action'] === true)
 	                        {
 	                            echo "Gerät mit der Addresse " . (string) $Channel['Address'] . " hat keine Standardaktion," . PHP_EOL;
-	                            echo "  für den Datenpunkt " . $Obj['ObjectIdent'] . " des Gerätes mit Namen '" . utf8_decode((string) $Channel['Name']) . "'." . PHP_EOL;
+	                            echo "  für den Datenpunkt " . $Obj['ObjectIdent'] . " des Gerätes mit Namen '" . (string) $Channel['Name'] . "'." . PHP_EOL;
 	                            echo "--------------------------------------------------------------------" . PHP_EOL;
 	                        }
 	                    }
@@ -1249,11 +1249,11 @@ foreach ($HMCcuAddress as $Key)
 		                    // Schleife Gewerk
 		                    foreach ($Channel->{'Function'} as $Function)
 		                    {
-		                        $Name = sprintf($Mapping[$Obj['ObjectIdent']]['Name Gewerk'], utf8_decode((string) $Channel['Name']), utf8_decode((string) $Channel->Room[0]['Name']), utf8_decode((string) $Function['Name']));
+		                        $Name = sprintf($Mapping[$Obj['ObjectIdent']]['Name Gewerk'], (string) $Channel['Name'], (string) $Channel->Room[0]['Name'], (string) $Function['Name']);
 		                        $LnkID = IPS_CreateLink();
 		                        IPS_SetLinkTargetID($LnkID, $Var);
 		                        IPS_SetName($LnkID, $Name);
-		                        IPS_SetParent($LnkID, $Functions[utf8_decode((string) $Function['Name'])]);
+		                        IPS_SetParent($LnkID, $Functions[(string) $Function['Name']]);
 		                    }
 						}
 					}
