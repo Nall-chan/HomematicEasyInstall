@@ -793,7 +793,6 @@ $TypMappingProfil = array(
         ),
 	),
 	'SHUTTER_TRANSMITTER' => array(
-		// ACTIVITY_STATE, LEVEL, LEVEL_STATUS, PROCESS, SECTION, SECTION_STATUS
         'LEVEL' => array(
             'Name Raum' => 'Rolladenhöhe',
             'Name Gewerk' => '%1$s Rolladenhöhe',
@@ -808,7 +807,6 @@ $TypMappingProfil = array(
         ),
 	),
 	'SHUTTER_VIRTUAL_RECEIVER' => array(
-		// ACTIVITY_STATE, LEVEL, LEVEL_STATUS, PROCESS, SECTION, SECTION_STATUS
         'LEVEL' => array(
             'Name Raum' => 'Rolladenhöhe',
             'Name Gewerk' => '%1$s Rolladenhöhe',
@@ -816,6 +814,79 @@ $TypMappingProfil = array(
             'Action' => true
         ),
 	),
+	'HEATING_CLIMATECONTROL_TRANSCEIVER' => array(
+        'ACTUAL_TEMPERATURE' => array(
+            'Name Raum' => 'Temperatur',
+            'Name Gewerk' => 'Temperatur %2$s',
+            'Profil' => '', // ~Temperature
+            'Action' => false
+        ),
+        'HUMIDITY' => array(
+            'Name Raum' => 'Luftfeuchte',
+            'Name Gewerk' => 'Luftfeuchte %2$s',
+            'Profil' => '~Humidity',
+            'Action' => false
+        ),
+
+		'SET_POINT_MODE' => array(
+			'Name Raum' => 'Betriebsmodus',
+			'Name Gewerk' => 'Betriebsmodus %2$s',
+			'Profil' => 'HeatingControlMode.HM',
+			'Action' => 'HEATING_CLIMATECONTROL_SCRIPT'
+		),
+        'SET_POINT_TEMPERATURE' => array(
+            'Name Raum' => 'Soll Temperatur',
+            'Name Gewerk' => 'Soll Temperatur %2$s',
+            'Profil' => '', // ~Temperature.HM
+            'Action' => true
+        ),
+        'BOOST_MODE' => array(
+            'Name Raum' => 'Boost',
+            'Name Gewerk' => 'Boost %2$s',
+            'Profil' => '~Switch',
+			'Action' => 'WRITE_BOOLEAN_SCRIPT'
+        ),
+        'WINDOW_STATE' => array(
+            'Name Raum' => 'Fenster',
+            'Name Gewerk' => 'Fenster %2$s',
+            'Profil' => 'WindowState.HM',
+            'Action' => 'WRITE_INTEGER_SCRIPT'
+        ),
+        'HEATING_COOLING' => array(
+            'Name Raum' => 'Betriebsart',
+            'Name Gewerk' => 'Betriebsart %2$s',
+            'Profil' => 'HeatingCooling.HM',
+			'Action' => 'WRITE_INTEGER_SCRIPT'
+        ),
+	),
+	'CLIMATECONTROL_FLOOR_DIRECT_TRANSMITTER' => array(
+        'EMERGENCY_OPERATION' => array(
+            'Name Raum' => 'Verbindung',
+            'Name Gewerk' => 'Verbindung %2$s',
+            'Profil' => '~Alert',
+            'Action' => false
+		),
+        'FROST_PROTECTION' => array(
+            'Name Raum' => 'Frostschutz',
+            'Name Gewerk' => 'Frostschutz %2$s',
+            'Profil' => '~Alert',
+            'Action' => false
+		),
+        'HUMIDITY_ALARM' => array(
+            'Name Raum' => 'Luftfeuchte',
+            'Name Gewerk' => 'Luftfeuchte %2$s',
+            'Profil' => '~Alert',
+            'Action' => false
+		),
+        'STATE' => array(
+            'Name Raum' => 'Schaltzustand',
+            'Name Gewerk' => 'Schaltzustand %2$s',
+            'Profil' => '~Switch',
+            'Action' => false
+		),
+
+	),
+
     'SWITCH_INTERFACE' => array() // kein Zuordnung aber anlegen
 );
 
@@ -852,7 +923,8 @@ $RequestState = array(
     'LED_STATUS',
     'PARTY_TEMPERATURE',
 	'LUX',
-	'ACTIVITY_STATE'
+	'ACTIVITY_STATE',
+	'HEATING_COOLING',
 );
 
 # ENDE Konfig MAPPING
@@ -908,6 +980,12 @@ if ($ScriptCat != -1)
 	    IPS_SetVariableProfileAssociation('ControlMode.HM', 2, 'Urlaub', '', 0x3366FF);
 	    IPS_SetVariableProfileAssociation('ControlMode.HM', 3, 'Boost', '', 0xFFFF99);
 	}
+	if (!IPS_VariableProfileExists('HeatingControlMode.HM'))
+	{
+	    IPS_CreateVariableProfile('HeatingControlMode.HM', 1);
+	    IPS_SetVariableProfileAssociation('HeatingControlMode.HM', 0, 'Automatik', '', 0x339966);
+	    IPS_SetVariableProfileAssociation('HeatingControlMode.HM', 1, 'Manuell', '', 0xFF0000);
+	}
 	if (!IPS_VariableProfileExists('DimmerControl.HM'))
 	{
 	    IPS_CreateVariableProfile('DimmerControl.HM', 1);
@@ -926,9 +1004,21 @@ if ($ScriptCat != -1)
 	    IPS_SetVariableProfileValues('DimmerSpeed.HM', 0, 30, 2);
 	    IPS_SetVariableProfileText('DimmerSpeed.HM', '', ' s');
 	}
-	
-	
-	
+	if (!IPS_VariableProfileExists('WindowState.HM'))
+	{
+	    IPS_CreateVariableProfile('WindowState.HM', 1);
+
+	    IPS_SetVariableProfileAssociation('WindowState.HM', 0, 'geschlossen', '', -1);
+	    IPS_SetVariableProfileAssociation('WindowState.HM', 1, 'offen', '', -1);
+	}
+	if (!IPS_VariableProfileExists('HeatingCooling.HM'))
+	{
+	    IPS_CreateVariableProfile('HeatingCooling.HM', 1);
+
+	    IPS_SetVariableProfileAssociation('HeatingCooling.HM', 0, 'Heizen', '', -1);
+	    IPS_SetVariableProfileAssociation('HeatingCooling.HM', 1, 'Kühlen', '', -1);
+	}
+
 	$AddOnMappings = array(
 	    'BLIND' => array(
 	        'CONTROL' => array(
@@ -997,7 +1087,7 @@ if ($ScriptCat != -1)
 	            'Action' => 'DIMMER_SCRIPT',
 	            'VarTyp' => 2
 	        )
-	    )
+	    ),
 	);
 }
 
@@ -1563,6 +1653,45 @@ function ScriptContent($ident)
 			break;
 	}
 	?>',
+
+        'HEATING_CLIMATECONTROL_SCRIPT' =>
+        '<?
+	$target = IPS_GetParent($_IPS[\'VARIABLE\']);
+	switch ($_IPS[\'VALUE\'])
+	{
+		case 0:
+			HM_WriteValueInteger($target,\'CONTROL_MODE\', 0);
+			break;
+		case 1:
+			HM_WriteValueInteger($target,\'CONTROL_MODE\', 1);
+			break;
+	}
+	?>',
+
+        'WRITE_BOOLEAN_SCRIPT' =>
+        '<?
+	$r = IPS_GetObject($_IPS[\'VARIABLE\']);
+	$ident = $r[\'ObjectIdent\'];
+	$target = $r[\'ParentID\'];
+	HM_WriteValueBoolean($target,$ident, $_IPS[\'VALUE\']);
+	?>',
+
+        'WRITE_INTEGER_SCRIPT' =>
+        '<?
+	$r = IPS_GetObject($_IPS[\'VARIABLE\']);
+	$ident = $r[\'ObjectIdent\'];
+	$target = $r[\'ParentID\'];
+	HM_WriteValueInteger($target,$ident, $_IPS[\'VALUE\']);
+	?>',
+
+        'WRITE_FLOAT_SCRIPT' =>
+        '<?
+	$r = IPS_GetObject($_IPS[\'VARIABLE\']);
+	$ident = $r[\'ObjectIdent\'];
+	$target = $r[\'ParentID\'];
+	HM_WriteValueFloat($target,$ident, $_IPS[\'VALUE\']);
+	?>',
+
         'CONTROL_TEMP_SCRIPT' =>
         '<?
 	$target = IPS_GetParent($_IPS[\'VARIABLE\']);
@@ -1576,6 +1705,7 @@ function ScriptContent($ident)
 			break;
 	}
 	?>',
+
         'DIMMER_SCRIPT' =>
         '<?
 	$target = IPS_GetParent($_IPS[\'VARIABLE\']);
@@ -1611,7 +1741,8 @@ function ScriptContent($ident)
 		SetValueFloat($_IPS[\'VARIABLE\'],$_IPS[\'VALUE\']);
 	break;
 	}
-?>'
+	?>'
+
     );
     return $data[$ident];
 }
