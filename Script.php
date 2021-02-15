@@ -25,7 +25,7 @@
 # Verwendung:
 #
 # - Es muss wenigstens im Abschnitt Konfiguration eine CCU eingetragen werden.
-# - Zusätzliche Einstellungen sind jeweils seperat beschrieben.
+# - Zusätzliche Einstellungen sind jeweils separat beschrieben.
 # - Das Script ausführen.
 #     Sollte das Script mit einem Fehler beendet werden; einfach noch mal
 #		ausführen. Bereits angelegte Geräte werden übersprungen!
@@ -34,10 +34,26 @@
 #
 # ChangeLog:
 #
+# 15.02.2021
+#  Bugfix:  Wenn Mapping zum Gewerk leer war, wurde der aktueller Status mit HM_RequestStatus nicht abgefragt. 
+#  Bugfix:  Wenn Mapping zum Gewerk leer war, wurde die Einstellung EmulateStatus nicht gesetzt. 
+#  Neu:     ROTARY_HANDLE_TRANSCEIVER für HmIP Drehgriffsensoren.
+#  Neu:     SWITCH_TRANSMITTER für HmIP Schaltaktoren (nur Anzeige).
+#  Neu:     MAINTENANCE für HmIP erweitert um LOW_BAT, SABOTAGE und OPERATING_VOLTAGE.
+#  Neu:     CLIMATECONTROL_FLOOR_TRANSCEIVER für HmIP ergänzt..
+#  Neu:     Alle Geräte von HmIP mit *CLIMATECONTROL* erweitert um:
+#                   - Profilumschaltung 
+#                   - Temperatur Status
+#                   - Frostschutz
+#                   - Ventilöffnung
+#                   - Adaptionsfahrt Status
+#                   - Ventil Status
+#                   - Notbetrieb
+#
 # 19.11.2017
-#  Neu:     Homematic-IP wird unterstützt (sofern IPS-Version paßt !)
+#  Neu:     Homematic-IP wird unterstützt (sofern IPS-Version passt !)
 #  Neu:     Verlinkung auf Gewerke (GewerkCat) kann deaktiviert werden.
-#  Neu:     Erstellen von Hilfsvariablen und angepaßten Aktions-Scripten kann
+#  Neu:     Erstellen von Hilfsvariablen und angepassten Aktions-Scripten kann
 #           deaktiviert werden. (ScriptCat)
 #  Bugfix:  Es wurden Variablen falsch benannt und Fehler im Script erzeugt,
 #           wenn das Mapping unvollständig war (z.B. die ganzen TODO Einträge) 
@@ -60,7 +76,7 @@
 #           schlug das Laden der Daten von der CCU fehl.
 #
 # 02.07.2015
-#  Neu:     Zuätzliche Variablen und Aktions-Scripte für die einfache Bedienung
+#  Neu:     Zusätzliche Variablen und Aktions-Scripte für die einfache Bedienung
 #           von bestimmen Geräten implementiert:
 #					- DIMMER & VIRTUAL_DIMMER
 #
@@ -69,7 +85,7 @@
 #
 # 30.06.2015
 #	Neu:     Mehr Profile (Neue Wand & Heizkörperthermostaten, BLIND-Geräte)
-#           Zuätzliche Variablen und Aktions-Scripte für die einfache Bedienung
+#           Zusätzliche Variablen und Aktions-Scripte für die einfache Bedienung
 #           von bestimmen Geräten implementiert:
 #					- Neue Wand & Heizkörperthermostaten
 #					- BLIND-Geräte (Jalousie-Aktoren)
@@ -80,10 +96,9 @@
 #           von Statusvariablen und fragt anschließend den Wert aus der CCU ab.
 #
 # ToDo:
-#
-# Version 1.5 : Fertige Aktions-Scripte für...
-#					 die Party Modi-Umschaltung der Thermostaten.
-#               ....
+#       Fertige Aktions-Scripte für...
+#		    die Party Modi-Umschaltung der Thermostaten.
+#       ....
 #
 #
 
@@ -263,6 +278,14 @@ $TypMappingProfil = array(
             'Action' => false
         )
     ),
+    'ROTARY_HANDLE_TRANSCEIVER' => array(
+        'STATE' => array(
+            'Name Raum' => 'Zustand',
+            'Name Gewerk' => '%1$s',
+            'Profil' => '', // Window.HM
+            'Action' => false
+        )
+    ),
 	'SWITCH_SENSOR' => array(
         'STATE' => array(
             'Name Raum' => 'Zustand',
@@ -335,6 +358,14 @@ $TypMappingProfil = array(
             'Action' => false
         )
     ),
+    'SWITCH_TRANSMITTER'  => array(
+        'STATE' => array(
+            'Name Raum' => 'Zustand',
+            'Name Gewerk' => '%1$s',
+            'Profil' => '', // ~Switch
+            'Action' => false
+        )
+    ),
 	'SWITCH_VIRTUAL_RECEIVER' => array(
         'STATE' => array(
             'Name Raum' => 'Zustand',
@@ -368,7 +399,25 @@ $TypMappingProfil = array(
             'Name Gewerk' => '%1$s',
             'Profil' => '', // ~Battery
             'Action' => false
-        )
+        ),
+        'LOW_BAT' => array(
+            'Name Raum' => 'Batterie',
+            'Name Gewerk' => '%1$s',
+            'Profil' => '~Battery',
+            'Action' => false
+        ),
+        'OPERATING_VOLTAGE' => array(
+            'Name Raum' => 'Batteriespannung',
+            'Name Gewerk' => '', // nicht verlinken
+            'Profil' => '~Volt',
+            'Action' => false
+        ),
+        'SABOTAGE' => array(
+            'Name Raum' => 'Sabotage',
+            'Name Gewerk' => '', // nicht verlinken
+            'Profil' => '~Alert',
+            'Action' => false
+        ),
     /* 'STICKY_UNREACH'
       'RSSI_PEER' */
     ),
@@ -414,7 +463,7 @@ $TypMappingProfil = array(
         'VALVE_STATE' => array(
             'Name Raum' => 'Ventilöffnung',
             'Name Gewerk' => 'Ventilöffnung %2$s',
-            'Profil' => '', // ~Intensity.100
+            'Profil' => '', // ~Intensity.1
             'Action' => false
         )
     ),
@@ -732,7 +781,7 @@ $TypMappingProfil = array(
         'VALVE_STATE' => array(
             'Name Raum' => 'Ventilöffnung',
             'Name Gewerk' => 'Ventilöffnung %2$s',
-            'Profil' => '', // ~Intensity.100
+            'Profil' => '', // ~Intensity.1
             'Action' => false
         ),
         'forceDP' => array('PARTY_START_DAY' => 1, 'PARTY_START_MONTH' => 1, 'PARTY_START_TIME' => 1, 'PARTY_START_YEAR' => 1, 'PARTY_STOP_DAY' => 1, 'PARTY_STOP_MONTH' => 1, 'PARTY_STOP_TIME' => 1, 'PARTY_STOP_YEAR' => 1, 'PARTY_TEMPERATURE' => 2)
@@ -794,8 +843,8 @@ $TypMappingProfil = array(
 	),
 	'SHUTTER_TRANSMITTER' => array(
         'LEVEL' => array(
-            'Name Raum' => 'Rolladenhöhe',
-            'Name Gewerk' => '%1$s Rolladenhöhe',
+            'Name Raum' => 'Rollladenhöhe',
+            'Name Gewerk' => '%1$s Rollladenhöhe',
             'Profil' => '',
             'Action' => false
         ),
@@ -808,17 +857,35 @@ $TypMappingProfil = array(
 	),
 	'SHUTTER_VIRTUAL_RECEIVER' => array(
         'LEVEL' => array(
-            'Name Raum' => 'Rolladenhöhe',
-            'Name Gewerk' => '%1$s Rolladenhöhe',
+            'Name Raum' => 'Rollladenhöhe',
+            'Name Gewerk' => '%1$s Rollladenhöhe',
             'Profil' => '',
             'Action' => true
         ),
 	),
 	'HEATING_CLIMATECONTROL_TRANSCEIVER' => array(
+        'ACTIVE_PROFILE'=> array(
+            'Name Raum' => 'Aktives Zeitprofil',
+            'Name Gewerk' => 'aktives Zeitprofil %2$s',
+            'Profil' => 'HeatingControlProfile.HM',
+            'Action' => true
+        ),
         'ACTUAL_TEMPERATURE' => array(
             'Name Raum' => 'Temperatur',
             'Name Gewerk' => 'Temperatur %2$s',
             'Profil' => '', // ~Temperature
+            'Action' => false
+        ),
+        'ACTUAL_TEMPERATURE_STATUS' => array(
+            'Name Raum' => 'Temperatur Status',
+            'Name Gewerk' => 'Temperatur Status %2$s',
+            'Profil' => 'TemperaturState.HM',
+            'Action' => false
+        ),
+        'FROST_PROTECTION' => array(
+            'Name Raum' => 'Frostschutz',
+            'Name Gewerk' => 'Frostschutz %2$s',
+            'Profil' => '~Switch',
             'Action' => false
         ),
         'HUMIDITY' => array(
@@ -827,7 +894,6 @@ $TypMappingProfil = array(
             'Profil' => '~Humidity',
             'Action' => false
         ),
-
 		'SET_POINT_MODE' => array(
 			'Name Raum' => 'Betriebsmodus',
 			'Name Gewerk' => 'Betriebsmodus %2$s',
@@ -858,7 +924,25 @@ $TypMappingProfil = array(
             'Profil' => 'HeatingCooling.HM',
 			'Action' => 'WRITE_INTEGER_SCRIPT'
         ),
-	),
+        'LEVEL' => array(
+            'Name Raum' => 'Ventilöffnung',
+            'Name Gewerk' => 'Ventilöffnung %2$s',
+            'Profil' => '~Intensity.1',
+            'Action' => true
+        ),
+        'VALVE_ADAPTION' => array(
+            'Name Raum' => 'Adaptionsfahrt aktiv',
+            'Name Gewerk' => 'Adaptionsfahrt aktiv %2$s',
+            'Profil' => '~Switch',
+            'Action' => true
+        ),        
+        'VALVE_STATE' => array(
+            'Name Raum' => 'Status Ventil',
+            'Name Gewerk' => 'Status Ventil %2$s',
+            'Profil' => 'ValveError.HM',
+            'Action' => false
+        ),
+    ),
 	'CLIMATECONTROL_FLOOR_DIRECT_TRANSMITTER' => array(
         'EMERGENCY_OPERATION' => array(
             'Name Raum' => 'Verbindung',
@@ -884,9 +968,33 @@ $TypMappingProfil = array(
             'Profil' => '~Switch',
             'Action' => false
 		),
-
 	),
-
+    'CLIMATECONTROL_FLOOR_TRANSCEIVER' => array(
+        'EMERGENCY_OPERATION' => array(
+            'Name Raum' => 'Notbetrieb',
+            'Name Gewerk' => 'Notbetrieb %2$s',
+            'Profil' => '~Alert',
+            'Action' => false
+        ),
+        'FROST_PROTECTION' => array(
+            'Name Raum' => 'Frostschutz',
+            'Name Gewerk' => 'Frostschutz %2$s',
+            'Profil' => '~Switch',
+            'Action' => false
+        ),
+        'LEVEL' => array(
+            'Name Raum' => 'Ventilöffnung',
+            'Name Gewerk' => 'Ventilöffnung %2$s',
+            'Profil' => '~Intensity.1',
+            'Action' => true
+        ),
+        'VALVE_STATE' => array(
+            'Name Raum' => 'Status Ventil',
+            'Name Gewerk' => 'Status Ventil %2$s',
+            'Profil' => 'ValveError.HM',
+            'Action' => false
+        ),
+    ),
     'SWITCH_INTERFACE' => array() // kein Zuordnung aber anlegen
 );
 
@@ -924,7 +1032,17 @@ $RequestState = array(
     'PARTY_TEMPERATURE',
 	'LUX',
 	'ACTIVITY_STATE',
-	'HEATING_COOLING',
+    'HEATING_COOLING',
+    'SET_POINT_TEMPERATURE',
+    'ACTUAL_TEMPERATURE_STATUS',
+    'FROST_PROTECTION',
+    'WINDOW_STATE',
+    'BOOST_MODE',
+    'SET_POINT_MODE',
+    'ACTIVE_PROFILE',
+    'OPERATING_VOLTAGE',
+    'LOW_BAT',
+    'SABOTAGE'
 );
 
 # ENDE Konfig MAPPING
@@ -1018,7 +1136,33 @@ if ($ScriptCat != -1)
 	    IPS_SetVariableProfileAssociation('HeatingCooling.HM', 0, 'Heizen', '', -1);
 	    IPS_SetVariableProfileAssociation('HeatingCooling.HM', 1, 'Kühlen', '', -1);
 	}
-
+	if (!IPS_VariableProfileExists('TemperaturState.HM'))
+	{
+	    IPS_CreateVariableProfile('TemperaturState.HM', 1);
+	    IPS_SetVariableProfileAssociation('TemperaturState.HM', 0, 'OK', '', -1);
+        IPS_SetVariableProfileAssociation('TemperaturState.HM', 1, 'unbekannt', '', -1);
+        IPS_SetVariableProfileAssociation('TemperaturState.HM', 2, 'überheizt', '', 0xFF0000);
+        IPS_SetVariableProfileAssociation('TemperaturState.HM', 3, 'unterkühlt', '', 0x0000FF);
+    }
+	if (!IPS_VariableProfileExists('ValveError.HM'))
+	{
+	    IPS_CreateVariableProfile('ValveError.HM', 1);
+	    IPS_SetVariableProfileAssociation('ValveError.HM', 0, 'unbekannt', '', -1);
+        IPS_SetVariableProfileAssociation('ValveError.HM', 1, 'nicht installiert', '', -1);
+        IPS_SetVariableProfileAssociation('ValveError.HM', 2, 'wartet auf Adaptionsfahrt', '', -1);
+        IPS_SetVariableProfileAssociation('ValveError.HM', 3, 'Adaptionsfahrt läuft', '', -1);
+        IPS_SetVariableProfileAssociation('ValveError.HM', 4, 'fertig', '', -1);
+        IPS_SetVariableProfileAssociation('ValveError.HM', 5, 'Ventil schwergängig', '', 0x339966);
+        IPS_SetVariableProfileAssociation('ValveError.HM', 6, 'Stellbereich zu groß', '', 0x339966);
+        IPS_SetVariableProfileAssociation('ValveError.HM', 7, 'Stellbereich zu klein', '', 0x339966);
+        IPS_SetVariableProfileAssociation('ValveError.HM', 8, 'Notbetrieb', '', 0xFF0000);
+    }    
+    if (!IPS_VariableProfileExists('HeatingControlProfile.HM'))
+	{
+	    IPS_CreateVariableProfile('HeatingControlProfile.HM', 1);
+        IPS_SetVariableProfileValues('HeatingControlProfile.HM',1,3,0);
+	}
+    
 	$AddOnMappings = array(
 	    'BLIND' => array(
 	        'CONTROL' => array(
@@ -1202,12 +1346,11 @@ foreach ($HMCcuAddress as $Key)
         if (IPS_GetInstance($HMParent)['InstanceStatus'] <> 102)
         {
             echo "Homematic-Socket (" . IPS_GetName($HMParent) . ") mit der InstanzID " . $HMParent . " ist nicht aktiv." . PHP_EOL;
-            echo "  Überspinge alle Geräte dieser CCU" . PHP_EOL;
+            echo "  Überspringe alle Geräte dieser CCU" . PHP_EOL;
             echo "--------------------------------------------------------------------" . PHP_EOL;
             continue;
         }
     }
-//    $interfaces = ReadCCUInterfaces($IP);
     $xml = ReadCCUDevices($Key);
     if ($xml[0] === false)
         die($xml[1]);
@@ -1252,7 +1395,7 @@ foreach ($HMCcuAddress as $Key)
 				case 'HmIP-RF':
 					$Protocol = 2;
 					break;
-                default:  // falsches Interface (nicht HmIP, Radio oder Wired)
+                default:  // falsches Interface (nicht HmIP, Radio oder Wired. Wie Enocean oder CUxD)
 //                    echo "Gerät mit der Addresse " . (string) $Channel['Address'] . " hat keine unterstütztes Interface (" . (string) $Device['Interface'] . ")." . PHP_EOL;
 //                    echo "  Gerät mit Namen '" . (string) $Channel['Name'] . "' wird nicht erzeugt." . PHP_EOL;
 //                    echo "--------------------------------------------------------------------" . PHP_EOL;
@@ -1261,10 +1404,10 @@ foreach ($HMCcuAddress as $Key)
             // Datenpunkte im XML zählen... wenn 0 nicht anlegen
             if (count($Channel->xpath('Point')) == 0)
                 continue;
-            // Typ vom Gerät aus der XML auswerten... für passendes Profil bestimmer DPs
+            // Typ vom Gerät aus der XML auswerten... für passendes Profil bestimmter DPs
             if (!array_key_exists((string) $Channel['ChnLabel'], $TypMappingProfil))
             {
-                echo "Gerät mit der Addresse " . (string) $Channel['Address'] . " hat keinen bekannten Kanaltyp (" . (string) $Channel['ChnLabel'] . ")." . PHP_EOL;
+                echo "Gerät mit der Adresse " . (string) $Channel['Address'] . " hat keinen bekannten Kanaltyp (" . (string) $Channel['ChnLabel'] . ")." . PHP_EOL;
                 echo "  Gerät mit Namen '" . (string) $Channel['Name'] . "' wird nicht erzeugt." . PHP_EOL;
                 echo "--------------------------------------------------------------------" . PHP_EOL;
                 continue;
@@ -1317,7 +1460,7 @@ foreach ($HMCcuAddress as $Key)
             $Childs = IPS_GetChildrenIDs($HMDevice);
             if (count($Childs) == 0)
             {
-                echo "Gerät mit der Addresse " . (string) $Channel['Address'] . " hat keine Datenpunkte." . PHP_EOL;
+                echo "Gerät mit der Adresse " . (string) $Channel['Address'] . " hat keine Datenpunkte." . PHP_EOL;
                 echo "  Gerät mit Namen '" . (string) $Channel['Name'] . "' wird wieder gelöscht." . PHP_EOL;
                 echo "--------------------------------------------------------------------" . PHP_EOL;
                 IPS_DeleteInstance($HMDevice);
@@ -1327,83 +1470,82 @@ foreach ($HMCcuAddress as $Key)
             foreach ($Childs as $Var)
             {
                 $Obj = IPS_GetObject($Var);
-                if (array_key_exists($Obj['ObjectIdent'], $Mapping))
-                {
-				    if (array_key_exists('Name Raum',$Mapping[$Obj['ObjectIdent']]))
-					{
-	                    $Name = sprintf($Mapping[$Obj['ObjectIdent']]['Name Raum'], (string) $Channel['Name'], (string) $Channel->Room[0]['Name']);
-	                    IPS_SetName($Var, $Name);
-					}
-				    if (array_key_exists('Profil',$Mapping[$Obj['ObjectIdent']]))
-					{
-	                    // Profil ändern, wenn nicht leer im Mapping
-	                    if ($Mapping[$Obj['ObjectIdent']]['Profil'] <> '')
-	                    {
-	                        if (!@IPS_SetVariableCustomProfile($Var, $Mapping[$Obj['ObjectIdent']]['Profil']))
-	                        {
-	                            echo "Fehler bei Gerät mit der Addresse " . (string) $Channel['Address'] . " und Datenpunkt " . $Obj['ObjectIdent'] . PHP_EOL;
-	                            echo "  Profil '" . $Mapping[$Obj['ObjectIdent']]['Profil'] . "' konnte nicht zugewiesen werden." . PHP_EOL;
-	                            echo "--------------------------------------------------------------------" . PHP_EOL;
-	                        }
-	                    }
-					}
-					
-				    if (array_key_exists('Action',$Mapping[$Obj['ObjectIdent']]))
-					{
-	                    if (IPS_GetVariable($Var)['VariableAction'] > 0)
-	                    { // Standardaktion möglich
-	                        if ($Mapping[$Obj['ObjectIdent']]['Action'] === true)
-	                            IPS_SetVariableCustomAction($Var, 0);
-	                        elseif ($Mapping[$Obj['ObjectIdent']]['Action'] === false)
-	                            IPS_SetVariableCustomAction($Var, 1);
-	                    } else
-	                    {
-	                        if ($Mapping[$Obj['ObjectIdent']]['Action'] === true)
-	                        {
-	                            echo "Gerät mit der Addresse " . (string) $Channel['Address'] . " hat keine Standardaktion," . PHP_EOL;
-	                            echo "  für den Datenpunkt " . $Obj['ObjectIdent'] . " des Gerätes mit Namen '" . (string) $Channel['Name'] . "'." . PHP_EOL;
-	                            echo "--------------------------------------------------------------------" . PHP_EOL;
-	                        }
-	                    }
-	                    if (is_string($Mapping[$Obj['ObjectIdent']]['Action']) && ($ScriptCat != -1))
-	                    {
-	                        IPS_SetVariableCustomAction($Var, GetOrCreateScript($ScriptCat, $Mapping[$Obj['ObjectIdent']]['Action']));
-	                    }
-					}
-                    $DeviceHidden = false;
-					if ($GewerkCat != -1)
-					{
-						if (array_key_exists('Name Gewerk',$Mapping[$Obj['ObjectIdent']]))
-						{
-		                    // Link erzeugen zu Gewerk wenn Mapping nicht leer ist
-		                    if ($Mapping[$Obj['ObjectIdent']]['Name Gewerk'] == '')
-		                        continue;
-		                    //
-		                    // Schleife Gewerk
-		                    foreach ($Channel->{'Function'} as $Function)
-		                    {
-		                        $Name = sprintf($Mapping[$Obj['ObjectIdent']]['Name Gewerk'], (string) $Channel['Name'], (string) $Channel->Room[0]['Name'], (string) $Function['Name']);
-		                        $LnkID = IPS_CreateLink();
-		                        IPS_SetLinkTargetID($LnkID, $Var);
-		                        IPS_SetName($LnkID, $Name);
-		                        IPS_SetParent($LnkID, $Functions[(string) $Function['Name']]);
-		                    }
-						}
-					}
-                }
-                else
+                if (!array_key_exists($Obj['ObjectIdent'], $Mapping))
                 {
                     IPS_SetHidden($Var, true);
+                    continue;
                 }
-				
+                if (array_key_exists('Name Raum',$Mapping[$Obj['ObjectIdent']]))
+                {
+                    $Name = sprintf($Mapping[$Obj['ObjectIdent']]['Name Raum'], (string) $Channel['Name'], (string) $Channel->Room[0]['Name']);
+                    IPS_SetName($Var, $Name);
+                }
+                if (array_key_exists('Profil',$Mapping[$Obj['ObjectIdent']]))
+                {
+                    // Profil ändern, wenn nicht leer im Mapping
+                    if ($Mapping[$Obj['ObjectIdent']]['Profil'] <> '')
+                    {
+                        if (!@IPS_SetVariableCustomProfile($Var, $Mapping[$Obj['ObjectIdent']]['Profil']))
+                        {
+                            echo "Fehler bei Gerät mit der Adresse " . (string) $Channel['Address'] . " und Datenpunkt " . $Obj['ObjectIdent'] . PHP_EOL;
+                            echo "  Profil '" . $Mapping[$Obj['ObjectIdent']]['Profil'] . "' konnte nicht zugewiesen werden." . PHP_EOL;
+                            echo "--------------------------------------------------------------------" . PHP_EOL;
+                        }
+                    }
+                }
+                
+                if (array_key_exists('Action',$Mapping[$Obj['ObjectIdent']]))
+                {
+                    if (IPS_GetVariable($Var)['VariableAction'] > 0)
+                    { // Standardaktion möglich
+                        if ($Mapping[$Obj['ObjectIdent']]['Action'] === true)
+                            IPS_SetVariableCustomAction($Var, 0);
+                        elseif ($Mapping[$Obj['ObjectIdent']]['Action'] === false)
+                            IPS_SetVariableCustomAction($Var, 1);
+                    } else
+                    {
+                        if ($Mapping[$Obj['ObjectIdent']]['Action'] === true)
+                        {
+                            echo "Gerät mit der Adresse " . (string) $Channel['Address'] . " hat keine Standardaktion," . PHP_EOL;
+                            echo "  für den Datenpunkt " . $Obj['ObjectIdent'] . " des Gerätes mit Namen '" . (string) $Channel['Name'] . "'." . PHP_EOL;
+                            echo "--------------------------------------------------------------------" . PHP_EOL;
+                        }
+                    }
+                    if (is_string($Mapping[$Obj['ObjectIdent']]['Action']) && ($ScriptCat != -1))
+                    {
+                        IPS_SetVariableCustomAction($Var, GetOrCreateScript($ScriptCat, $Mapping[$Obj['ObjectIdent']]['Action']));
+                    }
+                }
                 if (in_array($Obj['ObjectIdent'], $Emulate))
                 {
                     IPS_SetProperty($HMDevice, 'EmulateStatus', true);
                     usleep(50000 /* [Objekt #50000 existiert nicht] */);
                     IPS_ApplyChanges($HMDevice);
                 }
-                if (in_array($Obj['ObjectIdent'], $RequestState))
+                if (in_array($Obj['ObjectIdent'], $RequestState)) {
                     @HM_RequestStatus($HMDevice, $Obj['ObjectIdent']);
+                }
+                $DeviceHidden = false;
+                if ($GewerkCat != -1)
+                {
+                    if (array_key_exists('Name Gewerk',$Mapping[$Obj['ObjectIdent']]))
+                    {
+                        // Link erzeugen zu Gewerk wenn Mapping nicht leer ist
+                        if ($Mapping[$Obj['ObjectIdent']]['Name Gewerk'] == '') {
+                            continue;
+                        }
+                        //
+                        // Schleife Gewerk
+                        foreach ($Channel->{'Function'} as $Function)
+                        {
+                            $Name = sprintf($Mapping[$Obj['ObjectIdent']]['Name Gewerk'], (string) $Channel['Name'], (string) $Channel->Room[0]['Name'], (string) $Function['Name']);
+                            $LnkID = IPS_CreateLink();
+                            IPS_SetLinkTargetID($LnkID, $Var);
+                            IPS_SetName($LnkID, $Name);
+                            IPS_SetParent($LnkID, $Functions[(string) $Function['Name']]);
+                        }
+                    }
+                }
             }
             if ($DeviceHidden)
                 IPS_SetHidden($HMDevice, true);
@@ -1541,12 +1683,6 @@ function GetOrCreateHMDevice($Parent, $Name, $Address, $Protocol, $HMParent)
     IPS_SetProperty($ObjID, 'EmulateStatus', false);
     usleep(50000 /* [Objekt #50000 existiert nicht] */);
     @IPS_ApplyChanges($ObjID);
-    /* 	 {
-      echo "Error beim Erzeugen von Gerät ".$Address.PHP_EOL;
-      //	 echo "  Gerät mit Namen ".$Name." wird wieder gelöscht.".PHP_EOL;
-      //	 IPS_DeleteInstance($ObjID);
-      //	 return false;
-      } */
     return $ObjID;
 }
 
@@ -1746,5 +1882,3 @@ function ScriptContent($ident)
     );
     return $data[$ident];
 }
-
-?>
